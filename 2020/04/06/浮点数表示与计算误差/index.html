@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>浮点数表示与计算误差 - Hexo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+
+
+
+
+    <meta name="description" content="为什么在 JavaScript 中计算浮点数可能存在误差？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浮点数表示与计算误差">
+<meta property="og:url" content="https://defpis.github.io/2020/04/06/%E6%B5%AE%E7%82%B9%E6%95%B0%E8%A1%A8%E7%A4%BA%E4%B8%8E%E8%AE%A1%E7%AE%97%E8%AF%AF%E5%B7%AE/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="为什么在 JavaScript 中计算浮点数可能存在误差？">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2020/04/06/WYmgiF2QcI8K3HB.jpg">
+<meta property="og:image" content="https://i.loli.net/2020/04/06/r8ojvNs5cXf2BIQ.jpg">
+<meta property="og:image" content="https://i.loli.net/2020/04/06/Rfp9T5V3hvwg6MD.png">
+<meta property="og:image" content="https://i.loli.net/2020/04/06/gRyDY4B8lLo7vF3.png">
+<meta property="article:published_time" content="2020-04-06T06:00:27.000Z">
+<meta property="article:modified_time" content="2020-10-13T07:28:44.659Z">
+<meta property="article:author" content="Defpis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/04/06/WYmgiF2QcI8K3HB.jpg">
+
+
+
+
+
+<link rel="icon" href="/favicon.png">
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt="" height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/categories">分类</a>
+            
+            <a class="navbar-item "
+               href="/tags">标签</a>
+            
+            <a class="navbar-item "
+               href="/archives">归档</a>
+            
+            <a class="navbar-item "
+               href="/about">关于我</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="搜索" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" href="https://github.com/defpis" target="_blank" rel="noopener">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            浮点数表示与计算误差
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2020-04-06T06:00:27.000Z" itemprop="datePublished">4月 6 2020</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            8 分钟 读完 (约 1256 字)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><h3 id="为什么在-JavaScript-中计算浮点数可能存在误差？"><a href="#为什么在-JavaScript-中计算浮点数可能存在误差？" class="headerlink" title="为什么在 JavaScript 中计算浮点数可能存在误差？"></a>为什么在 JavaScript 中计算浮点数可能存在误差？</h3><a id="more"></a>
+
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">console</span>.log(<span class="hljs-number">0.1</span> + <span class="hljs-number">0.2</span>); <span class="hljs-comment">// 0.30000000000000004</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="浮点数在计算机中的表示"><a href="#浮点数在计算机中的表示" class="headerlink" title="浮点数在计算机中的表示"></a>浮点数在计算机中的表示</h3><p>计算机使用二进制表示、存储和处理数据。为什么采用二进制，而不是人们更熟悉的十进制：因为使用物理电路模拟二进制数据状态更加容易，电路闭合为 1，电路断开为 0，通过电路闭合断开的物理过程来模拟数据的计算过程。</p>
+<p>JavaScript 中的所有数字类型的表示都遵循一个叫 IEEE 754 的国际标准，使用双精度 64bit（没有采用单精度 32bit）组成</p>
+<ul>
+<li><p>单精度 32bit<br><img src="https://i.loli.net/2020/04/06/WYmgiF2QcI8K3HB.jpg" alt="0"></p>
+</li>
+<li><p>双精度 64bit<br><img src="https://i.loli.net/2020/04/06/r8ojvNs5cXf2BIQ.jpg" alt="1"></p>
+</li>
+</ul>
+<p>计算公式</p>
+<p><img src="https://i.loli.net/2020/04/06/Rfp9T5V3hvwg6MD.png" alt="2"></p>
+<ul>
+<li>符号位 S：第 1 位是正负数符号位（sign），0 代表正数，1 代表负数</li>
+<li>指数位 E：中间的 11 位存储指数（exponent），用来表示次方数</li>
+<li>尾数位 M：最后的 52 位是尾数（mantissa），超出的部分自动进一舍零</li>
+</ul>
+<p>IEEE 754 对有效数字 M 和指数 E，还有一些特别规定。</p>
+<p>前面说过，1≤M&lt;2，也就是说，M 可以写成 1.xxxxxx 的形式，其中 xxxxxx 表示小数部分。IEEE 754 规定，在计算机内部保存 M 时，默认这个数的第一位总是 1，因此可以被舍去，只保存后面的 xxxxxx 部分。比如保存 1.01 的时候，只保存 01，等到读取的时候，再把第一位的 1 加上去。这样做的目的，是节省 1 位有效数字。以 64 位浮点数为例，留给 M 只有 52 位，将第一位的 1 舍去以后，等于可以保存 53 位有效数字。</p>
+<p>至于指数 E，情况就比较复杂。</p>
+<p>首先，E 为一个无符号整数（unsigned int）。这意味着，如果 E 为 8 位，它的取值范围为 0~255；如果 E 为 11 位，它的取值范围为 0~2047。但是，我们知道，科学计数法中的 E 是可以出现负数的，所以 IEEE 754 规定，E 的真实值必须再减去一个中间数，对于 8 位的 E，这个中间数是 127；对于 11 位的 E，这个中间数是 1023。</p>
+<p>所以 JavaScript 中数字表示的最终公式变成：</p>
+<p><img src="https://i.loli.net/2020/04/06/gRyDY4B8lLo7vF3.png" alt="3"></p>
+<p>比如，2^10 的 E 是 10，所以保存成 32 位浮点数时，必须保存成 10+127=137，即 10001001。</p>
+<p>然后，指数 E 还可以再分成三种情况：</p>
+<ul>
+<li>E 不全为 0 或不全为 1。这时，浮点数就采用上面的规则表示，即指数 E 的计算值减去 127（或 1023），得到真实值，再将有效数字 M 前加上第一位的 1。</li>
+<li>E 全为 0。这时，浮点数的指数 E 等于 1-127（或者 1-1023），有效数字 M 不再加上第一位的 1，而是还原为 0.xxxxxx 的小数。这样做是为了表示 ±0，以及接近于 0 的很小的数字。</li>
+<li>E 全为 1。这时，如果有效数字 M 全为 0，表示 ± 无穷大（正负取决于符号位 s）；如果有效数字 M 不全为 0，表示这个数不是一个数（NaN）。</li>
+</ul>
+<p>回到 <code>0.1+0.2 !== 0.3</code>，把各个数字的单独表示</p>
+<blockquote>
+<p>访问 <a href="http://www.binaryconvert.com/result_double.html" target="_blank" rel="noopener">http://www.binaryconvert.com/result_double.html</a> 在线转换</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>数字</th>
+<th>符号位</th>
+<th>指数位</th>
+<th>有效数位</th>
+<th>是否循环</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.1</td>
+<td>0</td>
+<td>01111111011</td>
+<td>1001100110011001100110011001100110011001100110011010</td>
+<td>1100</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>0</td>
+<td>01111111100</td>
+<td>1001100110011001100110011001100110011001100110011010</td>
+<td>1100</td>
+</tr>
+</tbody></table>
+<p>所以 0.1 和 0.2 表示成 IEEE 754 后有效数位都以 1001 无限循环，加起来结果</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">  0.0001100110011001100110011001100110011001100110011001101</span><br><span class="line">  0.0011001100110011001100110011001100110011001100110011010</span><br><span class="line">+ ---------------------------------------------------------</span><br><span class="line">  0.0100110011001100110011001100110011001100110011001100111 =&gt; 0.30000000000000004</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="为什么-x-0-1-能得到-0-1？隐式精度转换"><a href="#为什么-x-0-1-能得到-0-1？隐式精度转换" class="headerlink" title="为什么 x=0.1 能得到 0.1？隐式精度转换"></a>为什么 x=0.1 能得到 0.1？隐式精度转换</h3><p>因为 mantissa 固定长度是 52 位，再加上省略的一位，最多可以表示的数是 2^53=9007199254740992，对应科学计数尾数是 9.007199254740992，这也是 JS 最多能表示的精度。它的长度是 16，所以可以使用 toPrecision(16) 来做精度运算，超过的精度会自动做凑整处理。于是就有：</p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// 返回 0.1000000000000000，去掉末尾的零后正好为 0.1</span></span><br><span class="line">(<span class="hljs-number">0.100000000000000005551</span>).toPrecision(<span class="hljs-number">16</span>); <span class="hljs-comment">// 0.1</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-comment">// 但你看到的 `0.1` 实际上并不是 `0.1`。不信你可用更高的精度试试：</span></span><br><span class="line">(<span class="hljs-number">0.1</span>).toPrecision(<span class="hljs-number">21</span>); <span class="hljs-comment">// 0.100000000000000005551;</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="最大可表示数字"><a href="#最大可表示数字" class="headerlink" title="最大可表示数字"></a>最大可表示数字</h3><p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-built_in">Math</span>.pow(<span class="hljs-number">2</span>, <span class="hljs-number">1023</span>); <span class="hljs-comment">// 8.98846567431158e+307</span></span><br><span class="line"><span class="hljs-built_in">Math</span>.pow(<span class="hljs-number">2</span>, <span class="hljs-number">1024</span>); <span class="hljs-comment">// Infinity</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<blockquote>
+<p>可以使用第三方库解决大数计算问题 <a href="https://github.com/MikeMcl/bignumber.js/" target="_blank" rel="noopener">https://github.com/MikeMcl/bignumber.js/</a></p>
+</blockquote>
+<h3 id="十进制转换二进制的方法"><a href="#十进制转换二进制的方法" class="headerlink" title="十进制转换二进制的方法"></a>十进制转换二进制的方法</h3><p>以 0.1 举例</p>
+<table>
+<thead>
+<tr>
+<th>计算</th>
+<th>取整</th>
+<th>取余</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.1 * 2 = 0.2</td>
+<td>0</td>
+<td>0.2</td>
+</tr>
+<tr>
+<td>0.2 * 2 = 0.4</td>
+<td>0</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td>0.4 * 2 = 0.8</td>
+<td>0</td>
+<td>0.8</td>
+</tr>
+<tr>
+<td>0.8 * 2 = 1.6</td>
+<td>1</td>
+<td>0.6</td>
+</tr>
+<tr>
+<td>0.6 * 2 = 1.2</td>
+<td>1</td>
+<td>0.2</td>
+</tr>
+<tr>
+<td>0.2 * 2 = 0.4</td>
+<td>0</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td>0.4 * 2 = 0.8</td>
+<td>0</td>
+<td>0.8</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table>
+<p><code>0.1 =&gt; 0.00011001100...</code></p>
+<h3 id="易混淆-API"><a href="#易混淆-API" class="headerlink" title="易混淆 API"></a>易混淆 API</h3><table>
+<thead>
+<tr>
+<th>API</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>toPrecision</td>
+<td>是处理精度，精度是从左至右第一个不为 0 的数开始数起</td>
+</tr>
+<tr>
+<td>toFixed</td>
+<td>是小数点后指定位数取整，从小数点开始数起</td>
+</tr>
+</tbody></table>
+<p>两者都能对多余数字做凑整处理，也有些人用 toFixed 来做四舍五入，但一定要知道它是有 Bug 的。</p>
+<p>例如：1.005.toFixed(2) 返回的是 1.00 而不是 1.01。</p>
+<p>原因：1.005 实际对应的数字是 1.00499999999999989，在四舍五入时全部被舍去！</p>
+<blockquote>
+<p>项目地址：<a href="https://github.com/defpis/calculate-float-number-in-js" target="_blank" rel="noopener">https://github.com/defpis/calculate-float-number-in-js</a></p>
+</blockquote>
+</body></html>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2020/04/06/%E5%AE%9E%E7%8E%B0rxjs%E4%B8%AD%E7%9A%84Observable/">实现rxjs中的Observable</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2020/04/02/%E6%98%BE%E7%A4%BA%E5%A4%9A%E4%B8%AA%E8%AF%B7%E6%B1%82%E7%9A%84%E8%BF%9B%E5%BA%A6/">显示多个请求的进度</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2021 Defpis&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                    
+                    
+                    <a class="column is-narrow has-text-black" title="GitHub"
+                        href="https://github.com/defpis">
+                        
+                        GitHub
+                        
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/" target="_blank" rel="noopener">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="站内搜索" />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>

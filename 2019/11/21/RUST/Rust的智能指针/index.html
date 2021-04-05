@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>Rust的智能指针 - Hexo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+
+
+
+
+    <meta name="description" content="引用、指针和智能指针 Rust的引用就是指针，通过&amp;符号借用它们指向的值。除了引用数据外，它们没有任何其他特殊功能，也没有任何开销。 智能指针是充当指针的特殊数据结构，它具有相较于普通指针额外的元数据和拓展功能。 在Rust中，标准库定义的不同智能指针所提供的功能超出了引用所提供的功能，我们可以通过它们完成许多特定的功能。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rust的智能指针">
+<meta property="og:url" content="https://defpis.github.io/2019/11/21/RUST/Rust%E7%9A%84%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="引用、指针和智能指针 Rust的引用就是指针，通过&amp;符号借用它们指向的值。除了引用数据外，它们没有任何其他特殊功能，也没有任何开销。 智能指针是充当指针的特殊数据结构，它具有相较于普通指针额外的元数据和拓展功能。 在Rust中，标准库定义的不同智能指针所提供的功能超出了引用所提供的功能，我们可以通过它们完成许多特定的功能。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-11-20T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-10-13T07:28:44.654Z">
+<meta property="article:author" content="Defpis">
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+<link rel="icon" href="/favicon.png">
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt="" height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/categories">分类</a>
+            
+            <a class="navbar-item "
+               href="/tags">标签</a>
+            
+            <a class="navbar-item "
+               href="/archives">归档</a>
+            
+            <a class="navbar-item "
+               href="/about">关于我</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="搜索" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" href="https://github.com/defpis" target="_blank" rel="noopener">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            Rust的智能指针
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2019-11-20T16:00:00.000Z" itemprop="datePublished">11月 21 2019</time>
+        </span>
+        
+        <span class="column is-narrow article-category">
+            <i class="far fa-folder"></i>
+            <a class="article-category-link" href="/categories/Rust/">Rust</a>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            6 分钟 读完 (约 948 字)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><h3 id="引用、指针和智能指针"><a href="#引用、指针和智能指针" class="headerlink" title="引用、指针和智能指针"></a>引用、指针和智能指针</h3><ul>
+<li>Rust的引用就是指针，通过&amp;符号借用它们指向的值。除了引用数据外，它们没有任何其他特殊功能，也没有任何开销。</li>
+<li>智能指针是充当指针的特殊数据结构，它具有相较于普通指针额外的元数据和拓展功能。</li>
+<li>在Rust中，标准库定义的不同智能指针所提供的功能超出了引用所提供的功能，我们可以通过它们完成许多特定的功能。</li>
+</ul>
+<a id="more"></a>
+
+<h3 id="Rust标准库中的智能指针Box-lt-T-gt-、Rc-lt-T-gt-和RefCell-lt-T-gt-介绍"><a href="#Rust标准库中的智能指针Box-lt-T-gt-、Rc-lt-T-gt-和RefCell-lt-T-gt-介绍" class="headerlink" title="Rust标准库中的智能指针Box<T>、Rc<T>和RefCell<T>介绍"></a>Rust标准库中的智能指针<code>Box&lt;T&gt;</code>、<code>Rc&lt;T&gt;</code>和<code>RefCell&lt;T&gt;</code>介绍</h3><ul>
+<li><p><code>Box&lt;T&gt;</code>在栈上存储指针，在堆上存储数据。用来存储编译时无法确定大小的数据类型，例如引用自身的枚举定义：</p>
+<p></p><figure class="highlight rust hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">List</span></span> {</span><br><span class="line">    Cons(<span class="hljs-built_in">i32</span>, List),</span><br><span class="line">    Nil,</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>Rust尝试计算List大小时，会陷入无限递归！通过<code>Box&lt;T&gt;</code>包裹可以安全的通过编译：</p>
+<p></p><figure class="highlight rust hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">List</span></span> {</span><br><span class="line">    Cons(<span class="hljs-built_in">i32</span>, <span class="hljs-built_in">Box</span>&lt;List&gt;),</span><br><span class="line">    Nil,</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+</li>
+<li><p><code>Rc&lt;T&gt;</code>跟踪数据的引用数量。用来共享数据，实现多重所有权。</p>
+<p></p><figure class="highlight rust hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">let</span> a = Cons(<span class="hljs-number">5</span>, <span class="hljs-built_in">Box</span>::new(Cons(<span class="hljs-number">10</span>, <span class="hljs-built_in">Box</span>::new(Nil))));</span><br><span class="line"><span class="hljs-keyword">let</span> b = Cons(<span class="hljs-number">3</span>, <span class="hljs-built_in">Box</span>::new(a));</span><br><span class="line"><span class="hljs-keyword">let</span> c = Cons(<span class="hljs-number">4</span>, <span class="hljs-built_in">Box</span>::new(a));</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>上面的代码很显然会抛出借用错误，因为转移了两次<code>a</code>的所有权，但是如果需求上非要满足<code>b</code>和<code>c</code>的后继节点是<code>a</code>，且它们都需要有<code>a</code>的所有权，那么不通过一点特殊的手段，在当前借阅规则下就无法实现。</p>
+<p></p><figure class="highlight rust hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">List</span></span> {</span><br><span class="line">    Cons(<span class="hljs-built_in">i32</span>, Rc&lt;List&gt;),</span><br><span class="line">    Nil,</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">use</span> crate::List::{Cons, Nil};</span><br><span class="line"><span class="hljs-keyword">use</span> std::rc::Rc;</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {</span><br><span class="line">    <span class="hljs-keyword">let</span> a = Rc::new(Cons(<span class="hljs-number">5</span>, Rc::new(Cons(<span class="hljs-number">10</span>, Rc::new(Nil))))); <span class="hljs-comment">// count = 1</span></span><br><span class="line">    <span class="hljs-keyword">let</span> b = Cons(<span class="hljs-number">3</span>, Rc::clone(&amp;a)); <span class="hljs-comment">// count++</span></span><br><span class="line">    <span class="hljs-keyword">let</span> c = Cons(<span class="hljs-number">4</span>, Rc::clone(&amp;a)); <span class="hljs-comment">// count++</span></span><br><span class="line">}</span><br><span class="line"><span class="hljs-comment">// c count--</span></span><br><span class="line"><span class="hljs-comment">// b count--</span></span><br><span class="line"><span class="hljs-comment">// a count--</span></span><br><span class="line"><span class="hljs-comment">// count = 0</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>通过<code>Rc&lt;T&gt;</code>对数据的不可变引用计数，当引用计数为<code>0</code>时，离开作用域会触发drop析构。</p>
+</li>
+</ul>
+<blockquote>
+<p><code>Rc&lt;T&gt;</code>仅适用于不可变引用，如果你想要一个线程安全的替代品，请使用<code>std::sync::Arc</code></p>
+</blockquote>
+<ul>
+<li><p><code>RefCell&lt;T&gt;</code>实现内部可变性，并在运行时检查借阅规则。</p>
+<p>通常情况，给定一个不可变值，无法获取它的可变引用，下面的代码无法通过编译：</p>
+<p></p><figure class="highlight rust hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">let</span> x = <span class="hljs-number">5</span>;</span><br><span class="line"><span class="hljs-keyword">let</span> y = &amp;<span class="hljs-keyword">mut</span> x;</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>通过<code>RefCell&lt;T&gt;</code>就可以在运行时获取不可变值的可变引用</p>
+<p></p><figure class="highlight rust hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-meta">#[derive(Debug)]</span></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">List</span></span> {</span><br><span class="line">    Cons(Rc&lt;RefCell&lt;<span class="hljs-built_in">i32</span>&gt;&gt;, Rc&lt;List&gt;),</span><br><span class="line">    Nil,</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">use</span> crate::List::{Cons, Nil};</span><br><span class="line"><span class="hljs-keyword">use</span> std::rc::Rc;</span><br><span class="line"><span class="hljs-keyword">use</span> std::cell::RefCell;</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {</span><br><span class="line">    <span class="hljs-keyword">let</span> value = Rc::new(RefCell::new(<span class="hljs-number">5</span>));</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">let</span> a = Rc::new(Cons(Rc::clone(&amp;value), Rc::new(Nil)));</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">let</span> b = Cons(Rc::new(RefCell::new(<span class="hljs-number">6</span>)), Rc::clone(&amp;a));</span><br><span class="line">    <span class="hljs-keyword">let</span> c = Cons(Rc::new(RefCell::new(<span class="hljs-number">10</span>)), Rc::clone(&amp;a));</span><br><span class="line"></span><br><span class="line">    *value.borrow_mut() += <span class="hljs-number">10</span>; <span class="hljs-comment">// 5 + 10 = 15</span></span><br><span class="line"></span><br><span class="line">    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"a after = {:?}"</span>, a);</span><br><span class="line">    <span class="hljs-comment">// a after = Cons(RefCell { value: 15 }, Nil)</span></span><br><span class="line">    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"b after = {:?}"</span>, b);</span><br><span class="line">    <span class="hljs-comment">// b after = Cons(RefCell { value: 6 }, Cons(RefCell { value: 15 }, Nil))</span></span><br><span class="line">    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"c after = {:?}"</span>, c);</span><br><span class="line">    <span class="hljs-comment">// c after = Cons(RefCell { value: 10 }, Cons(RefCell { value: 15 }, Nil))</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+</li>
+</ul>
+<blockquote>
+<p>Rust借阅规则？</p>
+<ul>
+<li>At any given time, you can have <em>either</em> (but not both of) one mutable reference or any number of immutable references.</li>
+<li>References must always be valid.</li>
+</ul>
+<p>编译时/运行时检查借阅规则的区别</p>
+<p>With references and <code>Box</code>, the borrowing rules’ invariants are enforced at compile time. With <code>RefCell</code>, these invariants are enforced <em>at runtime</em>. With references, if you break these rules, you’ll get a compiler error. With <code>RefCell</code>, if you break these rules, your program will panic and exit.</p>
+</blockquote>
+<h3 id="使用Deref特质将智能指针视为常规引用"><a href="#使用Deref特质将智能指针视为常规引用" class="headerlink" title="使用Deref特质将智能指针视为常规引用"></a>使用<code>Deref</code>特质将智能指针视为常规引用</h3><p></p><figure class="highlight rust hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">MyBox</span></span>&lt;T&gt;(T);</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">impl</span>&lt;T&gt; MyBox&lt;T&gt; {</span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">new</span></span>(x: T) -&gt; MyBox&lt;T&gt; {</span><br><span class="line">        MyBox(x)</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">use</span> std::ops::Deref;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">impl</span>&lt;T&gt; Deref <span class="hljs-keyword">for</span> MyBox&lt;T&gt; {</span><br><span class="line">    <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Target</span></span> = T;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">deref</span></span>(&amp;<span class="hljs-keyword">self</span>) -&gt; &amp;T {</span><br><span class="line">        &amp;<span class="hljs-keyword">self</span>.<span class="hljs-number">0</span> <span class="hljs-comment">// MyBox通过元组构造，取第一个元素的引用</span></span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {</span><br><span class="line">    <span class="hljs-keyword">let</span> x = <span class="hljs-number">5</span>;</span><br><span class="line">    <span class="hljs-keyword">let</span> y = MyBox::new(x);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-built_in">assert_eq!</span>(<span class="hljs-number">5</span>, x);</span><br><span class="line">    <span class="hljs-built_in">assert_eq!</span>(<span class="hljs-number">5</span>, *y); <span class="hljs-comment">// *(y.deref())只会发生一次，不会无限递归</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h3 id="使用Drop-Trait运行清理代码"><a href="#使用Drop-Trait运行清理代码" class="headerlink" title="使用Drop Trait运行清理代码"></a>使用<code>Drop Trait</code>运行清理代码</h3><p></p><figure class="highlight rust hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">CustomSmartPointer</span></span> {</span><br><span class="line">    data: <span class="hljs-built_in">String</span>,</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">impl</span> <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> CustomSmartPointer {</span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {</span><br><span class="line">        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Dropping CustomSmartPointer with data `{}`!"</span>, <span class="hljs-keyword">self</span>.data);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {</span><br><span class="line">    <span class="hljs-keyword">let</span> c = CustomSmartPointer { data: <span class="hljs-built_in">String</span>::from(<span class="hljs-string">"my stuff"</span>) };</span><br><span class="line">    <span class="hljs-keyword">let</span> d = CustomSmartPointer { data: <span class="hljs-built_in">String</span>::from(<span class="hljs-string">"other stuff"</span>) };</span><br><span class="line">    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"CustomSmartPointers created."</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+</body></html>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2019/11/21/RUST/Rust%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2/">Rust的字符串</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2019/11/18/11-10%E5%91%A8%E6%80%BB%E7%BB%93/">11.10周总结</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2021 Defpis&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                    
+                    
+                    <a class="column is-narrow has-text-black" title="GitHub"
+                        href="https://github.com/defpis">
+                        
+                        GitHub
+                        
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/" target="_blank" rel="noopener">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="站内搜索" />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>

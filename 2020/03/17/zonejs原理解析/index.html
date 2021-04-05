@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>zonejs原理解析 - Hexo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+
+
+
+
+    <meta name="description" content="至从接触了Angualr2+之后，就从各种博客中了解到Angular2+使用了zone.js追踪异步操作，通过类似某些语言中本地线程存储(thread-local storage)的方式，在任意异步操作中访问相同数据。 作为之前的Flask重度开发者，本地线程存储这个概念并不陌生，Flask中的current_app, request, g对象等都是通过Werkzeug包提供的LocalStack">
+<meta property="og:type" content="article">
+<meta property="og:title" content="zonejs原理解析">
+<meta property="og:url" content="https://defpis.github.io/2020/03/17/zonejs%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="至从接触了Angualr2+之后，就从各种博客中了解到Angular2+使用了zone.js追踪异步操作，通过类似某些语言中本地线程存储(thread-local storage)的方式，在任意异步操作中访问相同数据。 作为之前的Flask重度开发者，本地线程存储这个概念并不陌生，Flask中的current_app, request, g对象等都是通过Werkzeug包提供的LocalStack">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-17T01:49:34.000Z">
+<meta property="article:modified_time" content="2020-10-13T07:28:44.655Z">
+<meta property="article:author" content="Defpis">
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+<link rel="icon" href="/favicon.png">
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt="" height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/categories">分类</a>
+            
+            <a class="navbar-item "
+               href="/tags">标签</a>
+            
+            <a class="navbar-item "
+               href="/archives">归档</a>
+            
+            <a class="navbar-item "
+               href="/about">关于我</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="搜索" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" href="https://github.com/defpis" target="_blank" rel="noopener">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            zonejs原理解析
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2020-03-17T01:49:34.000Z" itemprop="datePublished">3月 17 2020</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            7 分钟 读完 (约 1002 字)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><p>至从接触了Angualr2+之后，就从各种博客中了解到Angular2+使用了zone.js追踪异步操作，通过类似某些语言中本地线程存储(<code>thread-local storage</code>)的方式，在任意异步操作中访问相同数据。</p>
+<p>作为之前的Flask重度开发者，本地线程存储这个概念并不陌生，Flask中的current_app, request, g对象等都是通过Werkzeug包提供的LocalStack和LocalProxy实现了本地线程存储，对比Django在视图函数中传递请求上下文对象无疑更加优雅。</p>
+<p>但是它们之间也有一些区别：Flask实现了上下文在不同线程之间的切换；zone.js实现了上下文在异步代码中的持久化传递。</p>
+<a id="more"></a>
+<p>为了探究zone.js的实现，我阅读了v0.1.0版本的源码，从中窥探到了一些核心原理，通过下面构建<code>simple-zone</code>示例分享给大家。</p>
+<p>首先根据<a href="https://bobaekang.com/blog/minimal-typescript-project-setup-for-curious-minds/" target="_blank" rel="noopener"><code>Minimal TypeScript setup for curious minds</code></a>这篇文章构建一个TypeScript的最小开发环境</p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── README.md</span><br><span class="line">├── node_modules</span><br><span class="line">├── package-lock.json</span><br><span class="line">├── package.json</span><br><span class="line">├── src</span><br><span class="line">│   └── index.ts</span><br><span class="line">├── <span class="hljs-built_in">test</span></span><br><span class="line">└── tsconfig.json</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// src/index.ts</span></span><br><span class="line"><span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Hello World!'</span>);</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">➜ npm run serve</span><br><span class="line"></span><br><span class="line">Hello World!</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>这样环境就算搭建好了</p>
+<p>开始构建zone.js，首先它一定是一个class对象，可以传递父zone来构建，也可以传递一些配置，额外绑定一个静态属性index来标识创建的zone实例。</p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">class</span> Zone {</span><br><span class="line">  <span class="hljs-comment">// 标识创建的zone实例</span></span><br><span class="line">  <span class="hljs-keyword">static</span> index = <span class="hljs-number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">public</span> parentZone: Zone | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>, <span class="hljs-keyword">public</span> ZoneSpec = {}</span>) {</span><br><span class="line">    <span class="hljs-comment">// 如果传递了parentZone，以parentZone为原型对象创建空对象</span></span><br><span class="line">    <span class="hljs-keyword">const</span> zone = parentZone ? <span class="hljs-built_in">Object</span>.create(parentZone) : <span class="hljs-keyword">this</span>;</span><br><span class="line">    zone.index = ++Zone.index;</span><br><span class="line">    zone.parentZone = parentZone;</span><br><span class="line">    <span class="hljs-built_in">Object</span>.keys(ZoneSpec).forEach(<span class="hljs-function"><span class="hljs-params">key</span> =&gt;</span> {</span><br><span class="line">      zone[key] = ZoneSpec[key];</span><br><span class="line">    })</span><br><span class="line">    <span class="hljs-keyword">return</span> zone;</span><br><span class="line">  }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">const</span> rootZone = <span class="hljs-keyword">new</span> Zone();</span><br><span class="line"><span class="hljs-built_in">console</span>.log(rootZone); <span class="hljs-comment">// =&gt; Zone { parentZone: null, ZoneSpec: {}, index: 1 }</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>然后实现各个基础方法</p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// 在node中执行，全局对象为global</span></span><br><span class="line"><span class="hljs-keyword">const</span> g: { [key: <span class="hljs-built_in">string</span>]: <span class="hljs-built_in">any</span> } = global;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">class</span> Zone{</span><br><span class="line">  <span class="hljs-comment">// ...</span></span><br><span class="line"></span><br><span class="line">  <span class="hljs-comment">// 以当前zone实例为原型，构造一个新的zone</span></span><br><span class="line">  fork(spec = {}) {</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Zone(<span class="hljs-keyword">this</span>, spec);</span><br><span class="line">  }</span><br><span class="line">  <span class="hljs-comment">// 切换上下文执行回调函数</span></span><br><span class="line">  run(</span><br><span class="line">    fn: { apply: <span class="hljs-function">(<span class="hljs-params">arg0: <span class="hljs-built_in">any</span>, arg1: <span class="hljs-built_in">any</span></span>) =&gt;</span> <span class="hljs-built_in">any</span> },</span><br><span class="line">    applyTo: <span class="hljs-built_in">any</span>,</span><br><span class="line">    applyWith: IArguments,</span><br><span class="line">  ): <span class="hljs-built_in">any</span> {</span><br><span class="line">    <span class="hljs-keyword">const</span> oldZone = g.zone;</span><br><span class="line">    g.zone = <span class="hljs-keyword">this</span>;</span><br><span class="line">    <span class="hljs-keyword">let</span> result;</span><br><span class="line">    <span class="hljs-keyword">try</span> {</span><br><span class="line">      <span class="hljs-keyword">if</span> (g.zone.onEnter) {</span><br><span class="line">        g.zone.onEnter();</span><br><span class="line">      }</span><br><span class="line">      result = fn.apply(applyTo, applyWith);</span><br><span class="line">    } <span class="hljs-keyword">catch</span> (e) {</span><br><span class="line">      <span class="hljs-built_in">console</span>.error(e);</span><br><span class="line">    } <span class="hljs-keyword">finally</span> {</span><br><span class="line">      <span class="hljs-keyword">if</span> (g.zone.onLeave) {</span><br><span class="line">        g.zone.onLeave();</span><br><span class="line">      }</span><br><span class="line">      g.zone = oldZone;</span><br><span class="line">    }</span><br><span class="line">    <span class="hljs-keyword">return</span> result;</span><br><span class="line">  }</span><br><span class="line">  <span class="hljs-comment">// 使用zone包裹函数执行</span></span><br><span class="line">  bind(fn: {apply: <span class="hljs-function">(<span class="hljs-params">arg0: <span class="hljs-built_in">any</span>, arg1: <span class="hljs-built_in">any</span></span>) =&gt;</span> <span class="hljs-built_in">any</span>}) {</span><br><span class="line">    <span class="hljs-comment">// 闭包了一个与同步执行顺序有关的zone实例</span></span><br><span class="line">    <span class="hljs-keyword">const</span> zone = <span class="hljs-keyword">this</span>.fork();</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">ZoneBoundFn</span>(<span class="hljs-params"><span class="hljs-keyword">this</span>: Zone</span>): <span class="hljs-title">any</span> </span>{</span><br><span class="line">      <span class="hljs-keyword">return</span> zone.run(fn, <span class="hljs-keyword">this</span>, <span class="hljs-built_in">arguments</span>);</span><br><span class="line">    };</span><br><span class="line">  }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment">// 绑定rootZone到全局</span></span><br><span class="line"><span class="hljs-keyword">const</span> rootZone = (g.zone = <span class="hljs-keyword">new</span> Zone());</span><br><span class="line"><span class="hljs-built_in">console</span>.log(rootZone);</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>接下来就是zone.js黑科技的地方了，通过patch global.settimeout举例</p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">class</span> Zone{</span><br><span class="line">  <span class="hljs-comment">// 修改异步函数(eg: settimeout)的回调函数</span></span><br><span class="line">  <span class="hljs-comment">// 使异步回调函数被当前g.zone包裹执行</span></span><br><span class="line">  <span class="hljs-keyword">static</span> bindArguments(args: IArguments) {</span><br><span class="line">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = args.length - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) {</span><br><span class="line">      <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> args[i] === <span class="hljs-string">'function'</span>) {</span><br><span class="line">        args[i] = g.zone.bind(args[i]);</span><br><span class="line">      }</span><br><span class="line">    }</span><br><span class="line">    <span class="hljs-keyword">return</span> args;</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">  <span class="hljs-keyword">static</span> patchFn(obj: <span class="hljs-built_in">any</span>, fnNames: <span class="hljs-built_in">any</span>) {</span><br><span class="line">    fnNames.forEach(<span class="hljs-function">(<span class="hljs-params">name: <span class="hljs-built_in">string</span></span>) =&gt;</span> {</span><br><span class="line">      <span class="hljs-comment">// 使原有的方法在zone下执行</span></span><br><span class="line">      <span class="hljs-comment">// 并且收集方法到rootZone</span></span><br><span class="line">      <span class="hljs-keyword">const</span> delegate = obj[name];</span><br><span class="line">      <span class="hljs-keyword">if</span> (delegate) {</span><br><span class="line">        g.zone[name] = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{</span><br><span class="line">          <span class="hljs-keyword">return</span> delegate.apply(obj, Zone.bindArguments(<span class="hljs-built_in">arguments</span>))</span><br><span class="line">        }</span><br><span class="line">        obj[name] = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{</span><br><span class="line">          <span class="hljs-keyword">return</span> g.zone[name].apply(<span class="hljs-keyword">this</span>, <span class="hljs-built_in">arguments</span>);</span><br><span class="line">        }</span><br><span class="line">      }</span><br><span class="line">    });</span><br><span class="line">  }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment">// 保存原始setTimeout</span></span><br><span class="line"><span class="hljs-keyword">const</span> _setTimeout = g.setTimeout;</span><br><span class="line"><span class="hljs-comment">// 替换为zone执行的方法</span></span><br><span class="line">Zone.patchFn(g, [<span class="hljs-string">'setTimeout'</span>]);</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>最后通过我们实现的Zone来统计一下多个异步任务的总执行时间</p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">let</span> totalTime = <span class="hljs-number">0</span>;</span><br><span class="line"><span class="hljs-keyword">const</span> zoneA: <span class="hljs-built_in">any</span> = rootZone.fork({</span><br><span class="line">  onEnter() {</span><br><span class="line">    <span class="hljs-keyword">this</span>.startTime = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();</span><br><span class="line">  },</span><br><span class="line">  onLeave() {</span><br><span class="line">    <span class="hljs-keyword">const</span> time = (<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>()).getTime() - <span class="hljs-keyword">this</span>.startTime</span><br><span class="line">    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Took: <span class="hljs-subst">${time}</span>ms`</span>);</span><br><span class="line">    totalTime += time;</span><br><span class="line">  }</span><br><span class="line">});</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">main</span>(<span class="hljs-params"></span>) </span>{</span><br><span class="line">  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'start...'</span>);</span><br><span class="line">  setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {</span><br><span class="line">    workFn(<span class="hljs-string">'work1'</span>);</span><br><span class="line">    setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {</span><br><span class="line">      workFn(<span class="hljs-string">'work2'</span>);</span><br><span class="line">      setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {</span><br><span class="line">        workFn(<span class="hljs-string">'work3'</span>);</span><br><span class="line">      }, <span class="hljs-number">1000</span>)</span><br><span class="line">    }, <span class="hljs-number">1000</span>)</span><br><span class="line">  }, <span class="hljs-number">1000</span>);</span><br><span class="line"></span><br><span class="line">  _setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {</span><br><span class="line">    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`totalTime: <span class="hljs-subst">${totalTime}</span>ms`</span>);</span><br><span class="line">  }, <span class="hljs-number">5000</span>);</span><br><span class="line"></span><br><span class="line">  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">workFn</span>(<span class="hljs-params">msg: <span class="hljs-built_in">string</span></span>) </span>{</span><br><span class="line">    <span class="hljs-built_in">console</span>.log(msg);</span><br><span class="line">    <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>(<span class="hljs-number">1000000</span>).forEach(<span class="hljs-function"><span class="hljs-params">n</span> =&gt;</span> {</span><br><span class="line">      <span class="hljs-built_in">Math</span>.sqrt(n);</span><br><span class="line">    })</span><br><span class="line">  }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">zoneA.run(main);</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>执行得到</p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">➜ npm run serve</span><br><span class="line"></span><br><span class="line">start...</span><br><span class="line">Took: 2ms</span><br><span class="line">work1</span><br><span class="line">Took: 14ms</span><br><span class="line">work2</span><br><span class="line">Took: 14ms</span><br><span class="line">work3</span><br><span class="line">Took: 20ms</span><br><span class="line">totalTime: 50ms</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>总结：通过闭包和原型链的使用关联了同步和异步代码，持久化传递了执行上下文。</p>
+<p>本文源码：<a href="https://github.com/defpis/zonejs-analysis" target="_blank" rel="noopener">https://github.com/defpis/zonejs-analysis</a></p>
+</body></html>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2020/03/24/promise%E5%9C%A8angular1-x%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/">promise在angular1.x中的实现</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2020/03/01/%E6%B5%8F%E8%A7%88%E4%BF%AE%E6%94%B9%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%96%87%E4%BB%B6%E7%9A%84%E6%9C%80%E4%BD%B3%E6%96%B9%E5%BC%8F/">浏览修改服务器文件的最佳方式</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2021 Defpis&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                    
+                    
+                    <a class="column is-narrow has-text-black" title="GitHub"
+                        href="https://github.com/defpis">
+                        
+                        GitHub
+                        
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/" target="_blank" rel="noopener">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="站内搜索" />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>

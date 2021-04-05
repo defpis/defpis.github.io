@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>2. 基础架构（二） - Hexo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+
+
+
+
+    <meta name="description" content="继续工程布局之前先介绍一个工具mypy。 mypy是一款针对python的静态类型检查程序。通过它，我们的python代码同时具备了动态类型灵活和静态类型安全的优点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2. 基础架构（二）">
+<meta property="og:url" content="https://defpis.github.io/2019/11/02/%E4%BD%BF%E7%94%A8flask%E5%88%9B%E5%BB%BArestful%E9%A3%8E%E6%A0%BC%E6%8E%A5%E5%8F%A3/%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84%EF%BC%88%E4%BA%8C%EF%BC%89/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="继续工程布局之前先介绍一个工具mypy。 mypy是一款针对python的静态类型检查程序。通过它，我们的python代码同时具备了动态类型灵活和静态类型安全的优点。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-11-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-10-13T07:28:44.656Z">
+<meta property="article:author" content="Defpis">
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+<link rel="icon" href="/favicon.png">
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt="" height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/categories">分类</a>
+            
+            <a class="navbar-item "
+               href="/tags">标签</a>
+            
+            <a class="navbar-item "
+               href="/archives">归档</a>
+            
+            <a class="navbar-item "
+               href="/about">关于我</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="搜索" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" href="https://github.com/defpis" target="_blank" rel="noopener">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            2. 基础架构（二）
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2019-11-01T16:00:00.000Z" itemprop="datePublished">11月 2 2019</time>
+        </span>
+        
+        <span class="column is-narrow article-category">
+            <i class="far fa-folder"></i>
+            <a class="article-category-link" href="/categories/%E4%BD%BF%E7%94%A8flask%E5%88%9B%E5%BB%BArestful%E9%A3%8E%E6%A0%BC%E6%8E%A5%E5%8F%A3/">使用flask创建restful风格接口</a>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            10 分钟 读完 (约 1495 字)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><p>继续工程布局之前先介绍一个工具mypy。</p>
+<p>mypy是一款针对python的静态类型检查程序。通过它，我们的python代码同时具备了动态类型灵活和静态类型安全的优点。</p>
+<a id="more"></a>
+
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pipenv install mypy --dev</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>检查app目录下文件的类型标注情况</p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mypy app</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>如果提示”Cannot find module named ‘flask_restful’”，在根目录创建mypy.ini，写入内容：</p>
+<p></p><figure class="highlight ini hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-section">[mypy]</span></span><br><span class="line"><span class="hljs-attr">ignore_missing_imports</span> = <span class="hljs-literal">true</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>再次运行命令检查错误消失，不能正确处理包导入应该是虚拟环境的问题</p>
+<p>接下来继续布局工程，记录日志到文件和控制台，创建app/log.py输入：</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> Callable, Any</span><br><span class="line"><span class="hljs-keyword">from</span> time <span class="hljs-keyword">import</span> strftime, localtime, time</span><br><span class="line"><span class="hljs-keyword">from</span> uuid <span class="hljs-keyword">import</span> uuid4</span><br><span class="line"><span class="hljs-keyword">from</span> traceback <span class="hljs-keyword">import</span> format_exc</span><br><span class="line"><span class="hljs-keyword">from</span> logging <span class="hljs-keyword">import</span> Filter, Logger, Formatter, StreamHandler, INFO</span><br><span class="line"><span class="hljs-keyword">from</span> logging.handlers <span class="hljs-keyword">import</span> TimedRotatingFileHandler</span><br><span class="line"><span class="hljs-keyword">from</span> flask <span class="hljs-keyword">import</span> current_app, g, has_request_context</span><br><span class="line"><span class="hljs-keyword">from</span> .configs <span class="hljs-keyword">import</span> ROOT_PATH</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">bind_request_id</span><span class="hljs-params">()</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">    g.request_id = str(uuid4())</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_request_id</span><span class="hljs-params">()</span> -&gt; str:</span></span><br><span class="line">    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> hasattr(g, <span class="hljs-string">'request_id'</span>):</span><br><span class="line">        bind_request_id()</span><br><span class="line">    <span class="hljs-keyword">return</span> g.request_id</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RequestIdFilter</span><span class="hljs-params">(Filter)</span>:</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">filter</span><span class="hljs-params">(self, record)</span> -&gt; bool:</span></span><br><span class="line">        record.request_id = get_request_id() <span class="hljs-keyword">if</span> has_request_context() <span class="hljs-keyword">else</span> <span class="hljs-string">'----'</span></span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">log_error</span><span class="hljs-params">(func: Callable)</span>:</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">log_func</span><span class="hljs-params">(error: Exception)</span> -&gt; Any:</span></span><br><span class="line">        current_app.logger.error(format_exc())</span><br><span class="line">        <span class="hljs-keyword">return</span> func(error)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> log_func</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">add_console_handler</span><span class="hljs-params">(logger: Logger)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">    stream_handler = StreamHandler()</span><br><span class="line">    stream_handler.setFormatter(Formatter(</span><br><span class="line">        <span class="hljs-string">'%(request_id)s - %(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s'</span>))</span><br><span class="line">    stream_handler.addFilter(RequestIdFilter())</span><br><span class="line">    stream_handler.setLevel(INFO)</span><br><span class="line">    logger.addHandler(stream_handler)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">add_file_handler</span><span class="hljs-params">(logger: Logger)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">    dir_path = ROOT_PATH / <span class="hljs-string">'logs'</span></span><br><span class="line">    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> dir_path.exists():</span><br><span class="line">        dir_path.mkdir()</span><br><span class="line">    file_path = dir_path / (strftime(<span class="hljs-string">'%Y-%m-%d'</span>, localtime(time())) + <span class="hljs-string">'.log'</span>)</span><br><span class="line">    file_handler = TimedRotatingFileHandler(file_path, <span class="hljs-string">'D'</span>, <span class="hljs-number">1</span>, <span class="hljs-number">7</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">False</span>, <span class="hljs-literal">False</span>)</span><br><span class="line">    file_handler.setFormatter(Formatter(</span><br><span class="line">        <span class="hljs-string">'%(request_id)s - %(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s'</span>))</span><br><span class="line">    file_handler.addFilter(RequestIdFilter())</span><br><span class="line">    file_handler.setLevel(INFO)</span><br><span class="line">    logger.addHandler(file_handler)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>日志中定义了<strong>request_id</strong>需要在每次请求时绑定到flask的g对象上，所以创建一个中间件拦截每次请求，创建app/middlewares.py</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> flask <span class="hljs-keyword">import</span> current_app, request, g, Response</span><br><span class="line"><span class="hljs-keyword">from</span> .log <span class="hljs-keyword">import</span> bind_request_id</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">log_request_info</span><span class="hljs-params">()</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">    bind_request_id()</span><br><span class="line">    current_app.logger.info({</span><br><span class="line">        <span class="hljs-string">'method'</span>: request.method,</span><br><span class="line">        <span class="hljs-string">'url'</span>: request.url,</span><br><span class="line">    })</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">attach_request_id</span><span class="hljs-params">(response: Response)</span> -&gt; Response:</span></span><br><span class="line">    <span class="hljs-keyword">if</span> isinstance(response.get_json(), dict):</span><br><span class="line">        response.data = response.data.replace(<span class="hljs-string">b'{'</span>, bytes(<span class="hljs-string">'{\n    "request_id":"%s",'</span> % g.request_id, <span class="hljs-string">'utf-8'</span>), <span class="hljs-number">1</span>)</span><br><span class="line">    <span class="hljs-keyword">return</span> response</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>上面还增加一个中间件”attach_request_id”在json响应中添加<strong>request_id</strong>，在app/__init__.py中注册中间件和日志处理：</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="hljs-keyword">from</span> flask.logging <span class="hljs-keyword">import</span> default_handler</span><br><span class="line"><span class="hljs-keyword">from</span> .log <span class="hljs-keyword">import</span> add_console_handler, add_file_handler</span><br><span class="line"><span class="hljs-keyword">from</span> .middlewares <span class="hljs-keyword">import</span> log_request_info, attach_request_id</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_app</span><span class="hljs-params">(env: str)</span> -&gt; Flask:</span></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment"># log</span></span><br><span class="line">    logger = app.logger</span><br><span class="line">    logger.removeHandler(default_handler)</span><br><span class="line">    add_console_handler(logger)</span><br><span class="line">    add_file_handler(logger)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment"># middleware</span></span><br><span class="line">    app.before_request(log_request_info)</span><br><span class="line">    app.after_request(attach_request_id)</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> app</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>运行服务，发送请求，可以在更目录下看到logs目录生成，里面有当天的日志文件</p>
+<p>在app目录下创建errors.py、extensions.py、utils.py分别对应自定义错误处理、插件、工具函数模块：</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── Pipfile</span><br><span class="line">├── Pipfile.lock</span><br><span class="line">├── app</span><br><span class="line">│&nbsp;&nbsp; ├── __init__.py</span><br><span class="line">│&nbsp;&nbsp; ├── configs.py</span><br><span class="line">│&nbsp;&nbsp; ├── errors.py</span><br><span class="line">│&nbsp;&nbsp; ├── extensions.py</span><br><span class="line">│&nbsp;&nbsp; ├── log.py</span><br><span class="line">│&nbsp;&nbsp; ├── middlewares.py</span><br><span class="line">│&nbsp;&nbsp; └── utils.py</span><br><span class="line">├── logs</span><br><span class="line">├── main.py</span><br><span class="line">└── mypy.ini</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>接下来布局业务所需的接口目录，我们通过蓝本管理和区分接口的版本，在app下创建api_v1包，在其__init__.py中定义蓝本：</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> flask <span class="hljs-keyword">import</span> Blueprint</span><br><span class="line"></span><br><span class="line">blueprint = Blueprint(<span class="hljs-string">'v1'</span>, __name__, url_prefix=<span class="hljs-string">'/v1'</span>)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>在api_v1下继续创建目录models、resources、schemas、initialize分别用于存放模型文件、接口文件、序列化文件和初始化文件</p>
+<hr>
+<p>由于<strong><em>flask_restful</em></strong>提供的Api对象不可以嵌套注册路由，我在它基础上重新封装了一个Router对象</p>
+<blockquote>
+<p>app/core/router.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> Type, List, Tuple</span><br><span class="line"><span class="hljs-keyword">from</span> flask <span class="hljs-keyword">import</span> Blueprint</span><br><span class="line"><span class="hljs-keyword">from</span> flask_restful <span class="hljs-keyword">import</span> Api, Resource</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Router</span><span class="hljs-params">(object)</span>:</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self, prefix: str = <span class="hljs-string">''</span>, decorators: List = None)</span>:</span></span><br><span class="line">        self.prefix: str = prefix</span><br><span class="line">        self.resources: List = []</span><br><span class="line">        self.children: List = []</span><br><span class="line">        self.decorators: List = decorators <span class="hljs-keyword">or</span> []</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">add_resource</span><span class="hljs-params">(self, view_class: Type[Resource], *urls, **options)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">        self.resources.append([view_class, urls, options])</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">add_child_router</span><span class="hljs-params">(self, router: <span class="hljs-string">'Router'</span>, prefix: str = <span class="hljs-string">''</span>, decorators: List = None)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">        self.children.append((router, prefix, decorators <span class="hljs-keyword">or</span> []))</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">bind</span><span class="hljs-params">(self, blueprint: Blueprint)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line"></span><br><span class="line">        <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">recurse</span><span class="hljs-params">(router, prefix: str = <span class="hljs-string">''</span>, decorators: List = None)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">            prefix = prefix + router.prefix</span><br><span class="line">            decorators = router.decorators[::<span class="hljs-number">-1</span>] + (decorators <span class="hljs-keyword">or</span> [])</span><br><span class="line">            api = Api(blueprint, prefix=<span class="hljs-string">''</span>, decorators=decorators)</span><br><span class="line">            <span class="hljs-keyword">for</span> view_class, urls, options <span class="hljs-keyword">in</span> router.resources:</span><br><span class="line">                urls = [prefix + url <span class="hljs-keyword">for</span> url <span class="hljs-keyword">in</span> urls]</span><br><span class="line">                api.add_resource(view_class, *urls, **options)</span><br><span class="line">            <span class="hljs-keyword">for</span> child_router, child_prefix, child_decorators <span class="hljs-keyword">in</span> router.children:</span><br><span class="line">                recurse(child_router, prefix + child_prefix, child_decorators[::<span class="hljs-number">-1</span>] + decorators)</span><br><span class="line"></span><br><span class="line">        recurse(self)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">url</span><span class="hljs-params">(self, *options: Tuple)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">        <span class="hljs-keyword">for</span> option <span class="hljs-keyword">in</span> options:</span><br><span class="line">            <span class="hljs-keyword">if</span> len(option) == <span class="hljs-number">2</span> <span class="hljs-keyword">and</span> isinstance(option[<span class="hljs-number">1</span>], Router):</span><br><span class="line">                prefix, router = option</span><br><span class="line">                self.add_child_router(router, prefix)</span><br><span class="line"></span><br><span class="line">            <span class="hljs-keyword">if</span> len(option) == <span class="hljs-number">3</span> <span class="hljs-keyword">and</span> isinstance(option[<span class="hljs-number">1</span>], Router):</span><br><span class="line">                prefix, router, decorators = option</span><br><span class="line">                self.add_child_router(router, prefix, decorators)</span><br><span class="line"></span><br><span class="line">            <span class="hljs-keyword">if</span> len(option) == <span class="hljs-number">2</span> <span class="hljs-keyword">and</span> isinstance(option[<span class="hljs-number">1</span>], type(Resource)):</span><br><span class="line">                url, resource = option</span><br><span class="line">                <span class="hljs-keyword">if</span> isinstance(url, tuple) <span class="hljs-keyword">or</span> isinstance(url, list):</span><br><span class="line">                    self.add_resource(resource, *url)</span><br><span class="line">                <span class="hljs-keyword">else</span>:</span><br><span class="line">                    self.add_resource(resource, url)</span><br><span class="line"></span><br><span class="line">            <span class="hljs-keyword">if</span> len(option) == <span class="hljs-number">3</span> <span class="hljs-keyword">and</span> isinstance(option[<span class="hljs-number">1</span>], type(Resource)):</span><br><span class="line">                url, resource, kwargs = option</span><br><span class="line">                <span class="hljs-keyword">if</span> isinstance(url, tuple) <span class="hljs-keyword">or</span> isinstance(url, list):</span><br><span class="line">                    self.add_resource(resource, *url, **kwargs)</span><br><span class="line">                <span class="hljs-keyword">else</span>:</span><br><span class="line">                    self.add_resource(resource, url, **kwargs)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>提供了主要三个方法：</p>
+<ol>
+<li>add_resource(self, view_class: Type[Resource], *urls, **options) - 注册接口和<strong><em>flask_restful</em></strong>的add_resource一致</li>
+<li>add_child_router(self, router: ‘Router’, prefix: str = ‘’, decorators: List = None) - 注册子路由模块</li>
+<li>bind(self, blueprint: Blueprint) - 绑定对象上的所有路由到蓝图</li>
+<li>url(self, *options: Tuple) - 提供注册路由的通用方式</li>
+</ol>
+<hr>
+<p>根据业务需求建立文件目录，假设我们需要创建一个<em>hello</em>接口</p>
+<blockquote>
+<p>app/api_v1/resources</p>
+</blockquote>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── __init__.py</span><br><span class="line">├── demo</span><br><span class="line"> &nbsp;&nbsp; ├── __init__.py</span><br><span class="line"> &nbsp;&nbsp; └── greet.py  # HelloResource</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>app/api_v1/resources/demo/greet.py</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> Any</span><br><span class="line"><span class="hljs-keyword">from</span> flask_restful <span class="hljs-keyword">import</span> Resource</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloResource</span><span class="hljs-params">(Resource)</span>:</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get</span><span class="hljs-params">(self)</span> -&gt; Any:</span></span><br><span class="line">        <span class="hljs-keyword">return</span> {</span><br><span class="line">            <span class="hljs-string">"message"</span>: <span class="hljs-string">"Hello VimCoding!"</span></span><br><span class="line">        }</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>app/api_v1/resources/demo/__init__.py</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> app.core <span class="hljs-keyword">import</span> Router</span><br><span class="line"><span class="hljs-keyword">from</span> . <span class="hljs-keyword">import</span> greet</span><br><span class="line"></span><br><span class="line">router = Router(decorators=[])</span><br><span class="line">router.url(</span><br><span class="line">    (<span class="hljs-string">'/hello'</span>, greet.HelloResource, {<span class="hljs-string">"endpoint"</span>: <span class="hljs-string">"hello"</span>}),</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>app/api_v1/resources/__init__.py</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> app.core <span class="hljs-keyword">import</span> Router</span><br><span class="line"><span class="hljs-keyword">from</span> . <span class="hljs-keyword">import</span> demo</span><br><span class="line"></span><br><span class="line">router = Router(decorators=[])</span><br><span class="line">router.url(</span><br><span class="line">    (<span class="hljs-string">'/demo'</span>, demo.router),</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>修改app/api_v1/__init__.py</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> flask <span class="hljs-keyword">import</span> Blueprint</span><br><span class="line"><span class="hljs-keyword">from</span> . <span class="hljs-keyword">import</span> models, schemas, initialize</span><br><span class="line"><span class="hljs-keyword">from</span> .resources <span class="hljs-keyword">import</span> router</span><br><span class="line"></span><br><span class="line">blueprint = Blueprint(<span class="hljs-string">'v1'</span>, __name__, url_prefix=<span class="hljs-string">'/v1'</span>)</span><br><span class="line">router.bind(blueprint)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>修改app/__init__.py</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="hljs-keyword">from</span> . <span class="hljs-keyword">import</span> api_v1</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_app</span><span class="hljs-params">(env: str)</span> -&gt; Flask:</span></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment"># blueprint</span></span><br><span class="line">    app.register_blueprint(api_v1.blueprint)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> app</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>运行服务，使用Postman以GET方式访问<a href="http://localhost:5000/v1/demo/hello" target="_blank" rel="noopener">http://localhost:5000/v1/demo/hello</a>可以收到json格式响应。</p>
+<p></p><figure class="highlight json hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">{</span><br><span class="line">    <span class="hljs-attr">"request_id"</span>: <span class="hljs-string">"d2af0575-8973-444f-bbc1-25fa47a1b20d"</span>,</span><br><span class="line">    <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Hello VimCoding!"</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>这样处理接口目录就和业务层级同步</p>
+</body></html>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2019/11/03/%E8%80%81%E5%A9%86%E5%A4%A7%E4%BA%BA%E7%9A%84%E5%8D%9A%E5%AE%A2/%E4%B9%A0%E6%83%AF%E7%9A%84%E9%87%8D%E8%A6%81/">习惯的重要</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2019/11/02/%E8%80%81%E5%A9%86%E5%A4%A7%E4%BA%BA%E7%9A%84%E5%8D%9A%E5%AE%A2/%E7%86%9F%E6%82%89markdown%E8%AF%AD%E6%B3%95/">这是我的第一篇博客</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2021 Defpis&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                    
+                    
+                    <a class="column is-narrow has-text-black" title="GitHub"
+                        href="https://github.com/defpis">
+                        
+                        GitHub
+                        
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/" target="_blank" rel="noopener">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="站内搜索" />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>

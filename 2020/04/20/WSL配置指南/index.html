@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>WSL配置指南 - Hexo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+
+
+
+
+    <meta name="description" content="以管理员启动控制台，执行Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux 在应用商店安装Ubuntu 18.04和Windows Terminal，配置Ubuntu 18.04为默认终端 打开Windows Terminal控制台连接Ubuntu 18.04，输入用户名和密码，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WSL配置指南">
+<meta property="og:url" content="https://defpis.github.io/2020/04/20/WSL%E9%85%8D%E7%BD%AE%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="以管理员启动控制台，执行Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux 在应用商店安装Ubuntu 18.04和Windows Terminal，配置Ubuntu 18.04为默认终端 打开Windows Terminal控制台连接Ubuntu 18.04，输入用户名和密码，">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-20T10:45:29.000Z">
+<meta property="article:modified_time" content="2020-10-13T07:28:44.655Z">
+<meta property="article:author" content="Defpis">
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+<link rel="icon" href="/favicon.png">
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt="" height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/categories">分类</a>
+            
+            <a class="navbar-item "
+               href="/tags">标签</a>
+            
+            <a class="navbar-item "
+               href="/archives">归档</a>
+            
+            <a class="navbar-item "
+               href="/about">关于我</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="搜索" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" href="https://github.com/defpis" target="_blank" rel="noopener">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            WSL配置指南
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2020-04-20T10:45:29.000Z" itemprop="datePublished">4月 20 2020</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            4 分钟 读完 (约 558 字)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><ol>
+<li>以管理员启动控制台，执行<code>Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux</code></li>
+<li>在应用商店安装<code>Ubuntu 18.04</code>和<code>Windows Terminal</code>，配置<code>Ubuntu 18.04</code>为默认终端</li>
+<li>打开<code>Windows Terminal</code>控制台连接<code>Ubuntu 18.04</code>，输入用户名和密码，执行<code>sudo passwd root</code>设置管理员密码</li>
+</ol>
+<a id="more"></a>
+
+<ol start="4">
+<li><p>修改<code>/etc/sudoers</code>使sudo不再需要密码</p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod u+w /etc/sudoers</span><br><span class="line">sudo vim /etc/sudoers</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># - %sudo   ALL=(ALL:ALL) ALL</span></span><br><span class="line"><span class="hljs-comment"># + %sudo   ALL=(ALL:ALL) NOPASSWD:ALL</span></span><br><span class="line"></span><br><span class="line">sudo chmod u-w /etc/sudoers</span><br></pre></td></tr></tbody></table></figure><p></p>
+</li>
+<li><p>更换<code>apt</code>源，清华源地址：<a href="https://mirror.tuna.tsinghua.edu.cn/help/ubuntu/" target="_blank" rel="noopener">https://mirror.tuna.tsinghua.edu.cn/help/ubuntu/</a></p>
+</li>
+<li><p>执行<code>sudo apt update</code>和<code>sudo apt upgrade -y</code>（此过程较为耗时，耐心等待）</p>
+</li>
+<li><p>安装<code>oh-my-zsh</code></p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment"># 安装zsh</span></span><br><span class="line">sudo apt install zsh -y</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 配置zsh</span></span><br><span class="line">chsh -s /bin/zsh</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 确认配置成功</span></span><br><span class="line"><span class="hljs-built_in">echo</span> <span class="hljs-variable">$SHELL</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 重新打开终端以生效，选择2</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 由于网络的原因，在浏览器打开脚本 https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh 复制</span></span><br><span class="line"><span class="hljs-comment"># 在终端中创建一个.sh文件，不要使用.txt修改后缀的方式，不然脚本执行有问题</span></span><br><span class="line">touch oh-my-zsh.sh</span><br><span class="line">chmod u+x oh-my-zsh.sh</span><br><span class="line">sh oh-my-zsh.sh</span><br></pre></td></tr></tbody></table></figure><p></p>
+</li>
+<li><p>安装<code>oh-my-zsh</code>相关插件</p>
+<ol>
+<li><p><a href="https://github.com/wting/autojump" target="_blank" rel="noopener">autojump</a></p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git <span class="hljs-built_in">clone</span> git://github.com/wting/autojump.git</span><br><span class="line"><span class="hljs-comment"># 如果没有python</span></span><br><span class="line"><span class="hljs-comment"># sudo apt install python -y</span></span><br><span class="line"><span class="hljs-built_in">cd</span> autojump &amp;&amp; ./install.py</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>接着拷贝以下代码到 ~/.zshrc 末尾</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[[ -s /home/wenjun/.autojump/etc/profile.d/autojump.sh ]] &amp;&amp; source /home/wenjun/.autojump/etc/profile.d/autojump.sh</span><br><span class="line">autoload -U compinit &amp;&amp; compinit -u</span><br></pre></td></tr></tbody></table></figure><p></p>
+</li>
+<li><p><a href="https://github.com/zsh-users/zsh-autosuggestions" target="_blank" rel="noopener">zsh-autosuggestions</a></p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="hljs-built_in">clone</span> git://github.com/zsh-users/zsh-autosuggestions <span class="hljs-variable">$ZSH_CUSTOM</span>/plugins/zsh-autosuggestions</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>在 ~/.zshrc 中添加</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">  ...</span><br><span class="line">  zsh-autosuggestions</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure><p></p>
+</li>
+<li><p><a href="https://github.com/zsh-users/zsh-syntax-highlighting" target="_blank" rel="noopener">zsh-syntax-highlighting</a></p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="hljs-built_in">clone</span> git://github.com/zsh-users/zsh-syntax-highlighting <span class="hljs-variable">$ZSH_CUSTOM</span>/plugins/zsh-syntax-highlighting</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>在 ~/.zshrc 中添加</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">  ...</span><br><span class="line">  zsh-syntax-highlighting</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure><p></p>
+</li>
+<li><p>执行<code>compaudit | xargs chmod g-w,o-w</code>修复不安全的脚本执行</p>
+</li>
+</ol>
+</li>
+<li><p>安装node及npm</p>
+<p> </p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment"># 安装node</span></span><br><span class="line">sudo apt install nodejs -y</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 安装npm</span></span><br><span class="line">sudo apt install npm -y</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 配置淘宝源</span></span><br><span class="line">sudo npm config <span class="hljs-built_in">set</span> registry https://registry.npm.taobao.org</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 修改权限</span></span><br><span class="line"><span class="hljs-built_in">echo</span> $(npm config get prefix)</span><br><span class="line">sudo chown -R $(whoami) &lt;path&gt;</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 升级npm到最新</span></span><br><span class="line">sudo npm install -g npm@latest</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 安装n模块</span></span><br><span class="line">sudo npm install -g n</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 清空缓存</span></span><br><span class="line">sudo npm cache clean -f</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># 升级node为稳定版</span></span><br><span class="line">sudo n stable</span><br></pre></td></tr></tbody></table></figure><p></p>
+</li>
+<li><p>执行<code>ssh-keygen -o</code>以生成ssh密钥，<code>cat ~/.ssh/id_rsa.pub</code>查看公钥，在<code>GitLab</code>中添加公钥以访问代码库</p>
+</li>
+</ol>
+</body></html>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2020/04/24/tcp%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E5%92%8C%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/">tcp三次握手和四次挥手</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2020/04/14/%E5%81%B6%E7%84%B6%E7%9C%8B%E5%88%B0%E7%9A%84%E9%9D%A2%E8%AF%95%E9%A2%98/">偶然看到的面试题</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2021 Defpis&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                    
+                    
+                    <a class="column is-narrow has-text-black" title="GitHub"
+                        href="https://github.com/defpis">
+                        
+                        GitHub
+                        
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/" target="_blank" rel="noopener">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="站内搜索" />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>

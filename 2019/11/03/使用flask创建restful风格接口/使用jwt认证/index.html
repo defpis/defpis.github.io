@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>3. 使用jwt认证 - Hexo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+
+
+
+
+    <meta name="description" content="完成接口目录和业务层级的布局之后，就可以开心的实现接口逻辑，主要围绕着数据库的增删改查实现，但是事实上通过接口所有人都可以访问，修改，删除数据库中的数据，这样十分危险，必须提供一种方式标识出访问者的身份，根据身份确定访问者是否可以访问，修改，删除对应的数据。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="3. 使用jwt认证">
+<meta property="og:url" content="https://defpis.github.io/2019/11/03/%E4%BD%BF%E7%94%A8flask%E5%88%9B%E5%BB%BArestful%E9%A3%8E%E6%A0%BC%E6%8E%A5%E5%8F%A3/%E4%BD%BF%E7%94%A8jwt%E8%AE%A4%E8%AF%81/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="完成接口目录和业务层级的布局之后，就可以开心的实现接口逻辑，主要围绕着数据库的增删改查实现，但是事实上通过接口所有人都可以访问，修改，删除数据库中的数据，这样十分危险，必须提供一种方式标识出访问者的身份，根据身份确定访问者是否可以访问，修改，删除对应的数据。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2019/11/09/14slZRKJLgTH5qF.jpg">
+<meta property="og:image" content="https://i.loli.net/2019/11/09/IaqRrSf2VTeObB5.jpg">
+<meta property="og:image" content="https://i.loli.net/2019/11/09/kXOznHTZYjwby2G.jpg">
+<meta property="og:image" content="https://i.loli.net/2019/11/09/JCVPdkQqZwDWeth.jpg">
+<meta property="article:published_time" content="2019-11-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-10-13T07:28:44.656Z">
+<meta property="article:author" content="Defpis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2019/11/09/14slZRKJLgTH5qF.jpg">
+
+
+
+
+
+<link rel="icon" href="/favicon.png">
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt="" height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/categories">分类</a>
+            
+            <a class="navbar-item "
+               href="/tags">标签</a>
+            
+            <a class="navbar-item "
+               href="/archives">归档</a>
+            
+            <a class="navbar-item "
+               href="/about">关于我</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="搜索" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" href="https://github.com/defpis" target="_blank" rel="noopener">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            3. 使用jwt认证
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2019-11-02T16:00:00.000Z" itemprop="datePublished">11月 3 2019</time>
+        </span>
+        
+        <span class="column is-narrow article-category">
+            <i class="far fa-folder"></i>
+            <a class="article-category-link" href="/categories/%E4%BD%BF%E7%94%A8flask%E5%88%9B%E5%BB%BArestful%E9%A3%8E%E6%A0%BC%E6%8E%A5%E5%8F%A3/">使用flask创建restful风格接口</a>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            13 分钟 读完 (约 1909 字)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><p>完成接口目录和业务层级的布局之后，就可以开心的实现接口逻辑，主要围绕着数据库的增删改查实现，但是事实上通过接口所有人都可以访问，修改，删除数据库中的数据，这样十分危险，必须提供一种方式标识出访问者的身份，根据身份确定访问者是否可以访问，修改，删除对应的数据。</p>
+<a id="more"></a>
+
+<blockquote>
+<p><strong><em>项目地址：<a href="https://github.com/defpis/build_restful_api_with_flask" target="_blank" rel="noopener">https://github.com/defpis/build_restful_api_with_flask</a></em></strong></p>
+</blockquote>
+<p>本节实现的目标：</p>
+<ul>
+<li>创建User表，提供用户注册，用户登录等接口，包含最基本的数据库操作</li>
+<li>先实现使用jwt认证，授权将在之后介绍</li>
+<li>参数解析</li>
+<li>模型序列化</li>
+</ul>
+<p>依赖安装</p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pipenv install flask_sqlalchemy <span class="hljs-comment"># 数据库orm</span></span><br><span class="line">pipenv install flask-migrate <span class="hljs-comment"># 数据库迁移</span></span><br><span class="line">pipenv install marshmallow-sqlalchemy <span class="hljs-comment"># 模型序列化</span></span><br><span class="line">pipenv install flask-marshmallow <span class="hljs-comment"># 模型序列化</span></span><br><span class="line">pipenv install webargs <span class="hljs-comment"># 参数解析</span></span><br><span class="line">pipenv install flask-jwt-extended <span class="hljs-comment"># jwt认证</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>在extensions.py中实例化插件</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> flask_sqlalchemy <span class="hljs-keyword">import</span> SQLAlchemy</span><br><span class="line"><span class="hljs-keyword">from</span> flask_migrate <span class="hljs-keyword">import</span> Migrate</span><br><span class="line"><span class="hljs-keyword">from</span> flask_jwt_extended <span class="hljs-keyword">import</span> JWTManager</span><br><span class="line"><span class="hljs-keyword">from</span> flask_marshmallow <span class="hljs-keyword">import</span> Marshmallow</span><br><span class="line"></span><br><span class="line">db = SQLAlchemy()</span><br><span class="line">session = db.session</span><br><span class="line">migrate = Migrate()</span><br><span class="line">jwt = JWTManager()</span><br><span class="line">ma = Marshmallow()</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>之后在create_app中初始化</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="hljs-keyword">from</span> .extensions <span class="hljs-keyword">import</span> db, migrate, jwt, ma</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_app</span><span class="hljs-params">(env: str)</span> -&gt; Flask:</span></span><br><span class="line">		...</span><br><span class="line">    </span><br><span class="line">    <span class="hljs-comment"># extensions</span></span><br><span class="line">    db.init_app(app)</span><br><span class="line">    migrate.init_app(app, db)</span><br><span class="line">    jwt.init_app(app)</span><br><span class="line">    ma.init_app(app)</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="hljs-keyword">return</span> app</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>创建base.py定义抽象基类，抽离公用字段</p>
+<blockquote>
+<p>app/api_v1/models/base.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> sqlalchemy.ext.declarative <span class="hljs-keyword">import</span> declared_attr</span><br><span class="line"><span class="hljs-keyword">from</span> app.extensions <span class="hljs-keyword">import</span> db</span><br><span class="line"><span class="hljs-keyword">from</span> app.utils <span class="hljs-keyword">import</span> get_now, camel_to_underline, get_attr_on_g</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Base</span><span class="hljs-params">(db.Model)</span>:</span></span><br><span class="line">    __abstract__ = <span class="hljs-literal">True</span></span><br><span class="line"></span><br><span class="line">    app_id = db.Column(db.Integer(), default=get_attr_on_g(<span class="hljs-string">'app_id'</span>))</span><br><span class="line">    creator_id = db.Column(db.Integer(), default=get_attr_on_g(<span class="hljs-string">'user_id'</span>))</span><br><span class="line">    created_time = db.Column(db.DateTime(), default=get_now)</span><br><span class="line">    modifier_id = db.Column(db.Integer(), onupdate=get_attr_on_g(<span class="hljs-string">'user_id'</span>))</span><br><span class="line">    last_updated_time = db.Column(db.DateTime(), onupdate=get_now)</span><br><span class="line">    is_deleted = db.Column(db.Boolean(), default=<span class="hljs-literal">False</span>)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment"># noinspection PyMethodParameters</span></span><br><span class="line"><span class="hljs-meta">    @declared_attr</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__tablename__</span><span class="hljs-params">(cls)</span> -&gt; str:</span></span><br><span class="line">        <span class="hljs-keyword">return</span> camel_to_underline(cls.__name__)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>然后定义用户模型user.py</p>
+<blockquote>
+<p>app/api_v1/models/user.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> werkzeug.security <span class="hljs-keyword">import</span> generate_password_hash, check_password_hash</span><br><span class="line"><span class="hljs-keyword">from</span> app.extensions <span class="hljs-keyword">import</span> jwt</span><br><span class="line"><span class="hljs-keyword">from</span> app.errors <span class="hljs-keyword">import</span> UserNotExisted</span><br><span class="line"><span class="hljs-keyword">from</span> .base <span class="hljs-keyword">import</span> Base, db</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span><span class="hljs-params">(Base)</span>:</span></span><br><span class="line">    id = db.Column(db.Integer(), primary_key=<span class="hljs-literal">True</span>)</span><br><span class="line">    username = db.Column(db.String(<span class="hljs-number">64</span>), unique=<span class="hljs-literal">True</span>, index=<span class="hljs-literal">True</span>, nullable=<span class="hljs-literal">False</span>)</span><br><span class="line">    password_hash = db.Column(db.String(<span class="hljs-number">128</span>), nullable=<span class="hljs-literal">False</span>)</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">    @property</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">password</span><span class="hljs-params">(self)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">        <span class="hljs-keyword">raise</span> AttributeError(<span class="hljs-string">'password is not a readable attribute'</span>)</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">    @password.setter</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">password</span><span class="hljs-params">(self, password: str)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">        self.password_hash = generate_password_hash(password)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">verify_password</span><span class="hljs-params">(self, password: str)</span> -&gt; bool:</span></span><br><span class="line">        <span class="hljs-keyword">return</span> check_password_hash(self.password_hash, password)</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">    @staticmethod</span></span><br><span class="line"><span class="hljs-meta">    @jwt.user_loader_callback_loader</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_current_user</span><span class="hljs-params">(user_id)</span>:</span></span><br><span class="line">        user = User.query.filter_by(id=user_id, is_deleted=<span class="hljs-literal">False</span>).first()</span><br><span class="line">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> user:</span><br><span class="line">            <span class="hljs-keyword">raise</span> UserNotExisted()</span><br><span class="line">        <span class="hljs-keyword">return</span> user</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>在app/api_v1/models/__init__.py中导出模型</p>
+<blockquote>
+<p>app/api_v1/models/__init__.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> .user <span class="hljs-keyword">import</span> User</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>修改configs.py，添加数据库配置</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SqlalchemyConfig</span>:</span></span><br><span class="line">    SQLALCHEMY_DATABASE_URI = <span class="hljs-string">f"sqlite:///<span class="hljs-subst">{ROOT_PATH}</span>/db.sqlite"</span></span><br><span class="line">    SQLALCHEMY_TRACK_MODIFICATIONS = <span class="hljs-literal">True</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DevelopmentConfig</span><span class="hljs-params">(BasicConfig, SqlalchemyConfig)</span>:</span></span><br><span class="line">    ...</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>代码编写完成，开始创建数据库表，在项目根目录下执行</p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">flask db init</span><br><span class="line">flask db migrate</span><br><span class="line">flask db upgrade</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>通过PyCharm自带的工具连接sqlite查看表</p>
+<p><img src="https://i.loli.net/2019/11/09/14slZRKJLgTH5qF.jpg" alt="user table.jpg"></p>
+<p>数据库表生成好了，开始编写注册逻辑</p>
+<p>在resources下新建一个auth目录存放认证相关接口</p>
+<blockquote>
+<p>app/api_v1/resources</p>
+</blockquote>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── __init__.py</span><br><span class="line">├── auth</span><br><span class="line">│&nbsp;&nbsp; ├── __init__.py</span><br><span class="line">│&nbsp;&nbsp; ├── login.py</span><br><span class="line">│&nbsp;&nbsp; └── register.py</span><br><span class="line">└── demo</span><br><span class="line">    ├── __init__.py</span><br><span class="line">    └── greet.py</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>先创建注册接口（相关依赖查看项目代码自己修复）</p>
+<blockquote>
+<p>app/api_v1/resources/auth/register.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> Dict, Any</span><br><span class="line"><span class="hljs-keyword">from</span> flask_marshmallow <span class="hljs-keyword">import</span> Schema</span><br><span class="line"><span class="hljs-keyword">from</span> flask_restful <span class="hljs-keyword">import</span> Resource</span><br><span class="line"><span class="hljs-keyword">from</span> marshmallow <span class="hljs-keyword">import</span> INCLUDE</span><br><span class="line"><span class="hljs-keyword">from</span> app.core <span class="hljs-keyword">import</span> parse, fields</span><br><span class="line"><span class="hljs-keyword">from</span> app.extensions <span class="hljs-keyword">import</span> session</span><br><span class="line"><span class="hljs-keyword">from</span> app.api_v1.schemas <span class="hljs-keyword">import</span> UserSchema</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RegisterSchema</span><span class="hljs-params">(Schema)</span>:</span></span><br><span class="line">    username = fields.String(required=<span class="hljs-literal">True</span>, error_messages={<span class="hljs-string">'required'</span>: <span class="hljs-string">'用户名是必要的'</span>})</span><br><span class="line">    password = fields.String(required=<span class="hljs-literal">True</span>, error_messages={<span class="hljs-string">'required'</span>: <span class="hljs-string">'密码是必要的'</span>})</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RegisterResource</span><span class="hljs-params">(Resource)</span>:</span></span><br><span class="line">    schema = UserSchema(exclude=(<span class="hljs-string">'password_hash'</span>,))</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">    @parse(RegisterSchema)</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get</span><span class="hljs-params">(self, data: Dict)</span> -&gt; Any:</span></span><br><span class="line">        <span class="hljs-keyword">return</span> self._register(data)</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">    @parse(RegisterSchema)</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">post</span><span class="hljs-params">(self, data: Dict)</span> -&gt; Any:</span></span><br><span class="line">        <span class="hljs-keyword">return</span> self._register(data)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_register</span><span class="hljs-params">(self, data: Dict)</span> -&gt; Dict:</span></span><br><span class="line">        user = self.schema.load(data, unknown=INCLUDE)</span><br><span class="line">        session.add(user)</span><br><span class="line">        session.commit()</span><br><span class="line">        <span class="hljs-keyword">return</span> self.schema.dump(user)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>然后创建登录接口</p>
+<blockquote>
+<p>app/api_v1/resources/auth/login.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> Dict, Any</span><br><span class="line"><span class="hljs-keyword">from</span> flask_restful <span class="hljs-keyword">import</span> Resource</span><br><span class="line"><span class="hljs-keyword">from</span> flask_jwt_extended <span class="hljs-keyword">import</span> create_access_token, create_refresh_token</span><br><span class="line"><span class="hljs-keyword">from</span> flask_marshmallow <span class="hljs-keyword">import</span> Schema</span><br><span class="line"><span class="hljs-keyword">from</span> app.core <span class="hljs-keyword">import</span> parse, fields</span><br><span class="line"><span class="hljs-keyword">from</span> app.errors <span class="hljs-keyword">import</span> UserNotExisted, PasswordInvalid</span><br><span class="line"><span class="hljs-keyword">from</span> app.api_v1.models <span class="hljs-keyword">import</span> User</span><br><span class="line"><span class="hljs-keyword">from</span> app.api_v1.schemas <span class="hljs-keyword">import</span> UserSchema</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AuthenticateMixin</span><span class="hljs-params">(object)</span>:</span></span><br><span class="line"><span class="hljs-meta">    @staticmethod</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">authenticate</span><span class="hljs-params">(username: str, password: str)</span> -&gt; User:</span></span><br><span class="line">        user = User.query.filter_by(username=username, is_deleted=<span class="hljs-literal">False</span>).first()</span><br><span class="line">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> user:</span><br><span class="line">            <span class="hljs-keyword">raise</span> UserNotExisted()</span><br><span class="line">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> user.verify_password(password):</span><br><span class="line">            <span class="hljs-keyword">raise</span> PasswordInvalid()</span><br><span class="line">        <span class="hljs-keyword">return</span> user</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">    @staticmethod</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">obtain_token</span><span class="hljs-params">(user: User)</span> -&gt; Dict:</span></span><br><span class="line">        <span class="hljs-keyword">return</span> dict(</span><br><span class="line">            access_token=create_access_token(identity=user.id),</span><br><span class="line">            refresh_token=create_refresh_token(identity=user.id)</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LoginSchema</span><span class="hljs-params">(Schema)</span>:</span></span><br><span class="line">    username = fields.String(required=<span class="hljs-literal">True</span>, error_messages={<span class="hljs-string">'required'</span>: <span class="hljs-string">'用户名是必要的'</span>})</span><br><span class="line">    password = fields.String(required=<span class="hljs-literal">True</span>, error_messages={<span class="hljs-string">'required'</span>: <span class="hljs-string">'密码是必要的'</span>})</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LoginResource</span><span class="hljs-params">(Resource, AuthenticateMixin)</span>:</span></span><br><span class="line">    schema = UserSchema(exclude=(<span class="hljs-string">'password_hash'</span>,))</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">    @parse(LoginSchema)</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get</span><span class="hljs-params">(self, data: Dict)</span> -&gt; Any:</span></span><br><span class="line">        <span class="hljs-keyword">return</span> self._login(data)</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">    @parse(LoginSchema)</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">post</span><span class="hljs-params">(self, data: Dict)</span> -&gt; Any:</span></span><br><span class="line">        <span class="hljs-keyword">return</span> self._login(data)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_login</span><span class="hljs-params">(self, data: Dict)</span> -&gt; Any:</span></span><br><span class="line">        user = self.authenticate(data[<span class="hljs-string">'username'</span>], data[<span class="hljs-string">'password'</span>])</span><br><span class="line">        <span class="hljs-keyword">return</span> dict(</span><br><span class="line">            **self.schema.dump(user),</span><br><span class="line">            **self.obtain_token(user)</span><br><span class="line">        )</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>需要定义UserSchema来序列化和反序列化，绑定当前的session对象，使之load回来的对象是orm的实例</p>
+<blockquote>
+<p>app/api_v1/schemas/user.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> app.extensions <span class="hljs-keyword">import</span> ma, session</span><br><span class="line"><span class="hljs-keyword">from</span> ..models <span class="hljs-keyword">import</span> User</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserSchema</span><span class="hljs-params">(ma.ModelSchema)</span>:</span></span><br><span class="line">    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Meta</span>:</span></span><br><span class="line">        model = User</span><br><span class="line">        sqla_session = session</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>最后依次往上注册路由</p>
+<blockquote>
+<p>app/api_v1/resources/auth/__init__.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> app.core <span class="hljs-keyword">import</span> Router</span><br><span class="line"><span class="hljs-keyword">from</span> . <span class="hljs-keyword">import</span> login, register</span><br><span class="line"></span><br><span class="line">router = Router(decorators=[])</span><br><span class="line">router.url(</span><br><span class="line">    ((<span class="hljs-string">'/login'</span>, <span class="hljs-string">'/obtain_token'</span>), login.LoginResource, {<span class="hljs-string">"endpoint"</span>: <span class="hljs-string">"login"</span>}),</span><br><span class="line">    (<span class="hljs-string">'/register'</span>, register.RegisterResource, {<span class="hljs-string">"endpoint"</span>: <span class="hljs-string">"register"</span>}),</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<blockquote>
+<p>app/api_v1/resources/__init__.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> app.core <span class="hljs-keyword">import</span> Router</span><br><span class="line"><span class="hljs-keyword">from</span> . <span class="hljs-keyword">import</span> demo, auth</span><br><span class="line"></span><br><span class="line">router = Router(decorators=[])</span><br><span class="line">router.url(</span><br><span class="line">    (<span class="hljs-string">'/demo'</span>, demo.router),</span><br><span class="line">    (<span class="hljs-string">'/auth'</span>, auth.router),</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>参数解析使用到了库webargs，在app.core中定义了模块fields.py和parser.py</p>
+<blockquote>
+<p>app/core/fields.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> marshmallow.fields <span class="hljs-keyword">import</span> *</span><br><span class="line"><span class="hljs-keyword">from</span> webargs.fields <span class="hljs-keyword">import</span> Nested  <span class="hljs-comment"># type: ignore</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<blockquote>
+<p>app/core/parser.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> Dict, Callable</span><br><span class="line"><span class="hljs-keyword">from</span> functools <span class="hljs-keyword">import</span> partial</span><br><span class="line"><span class="hljs-keyword">from</span> marshmallow <span class="hljs-keyword">import</span> Schema</span><br><span class="line"><span class="hljs-keyword">from</span> marshmallow.exceptions <span class="hljs-keyword">import</span> ValidationError</span><br><span class="line"><span class="hljs-keyword">from</span> webargs.flaskparser <span class="hljs-keyword">import</span> parser</span><br><span class="line"><span class="hljs-keyword">from</span> flask <span class="hljs-keyword">import</span> Request</span><br><span class="line"><span class="hljs-keyword">from</span> app.errors <span class="hljs-keyword">import</span> ValidateError</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">@parser.error_handler</span></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">handle_error</span><span class="hljs-params">(error: ValidationError, req: Request, schema: Schema, status_code: int, headers: Dict)</span> -&gt; <span class="hljs-keyword">None</span>:</span></span><br><span class="line">    <span class="hljs-keyword">raise</span> ValidateError(**error.messages) <span class="hljs-keyword">from</span> error  <span class="hljs-comment"># type: ignore</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">parse: Callable = partial(parser.use_args, locations=(<span class="hljs-string">'querystring'</span>, <span class="hljs-string">'json'</span>))</span><br></pre></td></tr></tbody></table></figure><p></p>
+<blockquote>
+<p>app/core/__init__.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="hljs-keyword">from</span> .parser <span class="hljs-keyword">import</span> parse</span><br><span class="line"><span class="hljs-keyword">from</span> . <span class="hljs-keyword">import</span> fields</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>自定义异常在app/errors.py中</p>
+<blockquote>
+<p>app/errors.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> Dict, Type</span><br><span class="line"><span class="hljs-keyword">from</span> flask <span class="hljs-keyword">import</span> Flask, jsonify</span><br><span class="line"><span class="hljs-keyword">from</span> .log <span class="hljs-keyword">import</span> log_error</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomErrorHandler</span><span class="hljs-params">(object)</span>:</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self)</span>:</span></span><br><span class="line">        self.custom_errors = []</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__call__</span><span class="hljs-params">(self, error_class: Type[<span class="hljs-string">'CustomError'</span>])</span>:</span></span><br><span class="line">        self.custom_errors.append(error_class)</span><br><span class="line">        <span class="hljs-keyword">return</span> error_class</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">init_app</span><span class="hljs-params">(self, app: Flask)</span>:</span></span><br><span class="line">        <span class="hljs-keyword">for</span> error_class <span class="hljs-keyword">in</span> self.custom_errors:</span><br><span class="line">            error_handler = log_error(error_class.generate_response)</span><br><span class="line">            app.errorhandler(error_class)(error_handler)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">custom_error_handler = CustomErrorHandler()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">@custom_error_handler</span></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomError</span><span class="hljs-params">(Exception)</span>:</span></span><br><span class="line">    code = <span class="hljs-number">500</span></span><br><span class="line">    message = <span class="hljs-string">"自定义错误"</span></span><br><span class="line">    errors: Dict = {}</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self, **kwargs)</span>:</span></span><br><span class="line">        self.errors = kwargs</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">generate_response</span><span class="hljs-params">(self)</span>:</span></span><br><span class="line">        resp_dict = {</span><br><span class="line">            <span class="hljs-string">'message'</span>: self.message</span><br><span class="line">        }</span><br><span class="line">        <span class="hljs-keyword">if</span> self.errors:</span><br><span class="line">            resp_dict[<span class="hljs-string">'errors'</span>] = self.errors</span><br><span class="line">        <span class="hljs-keyword">return</span> jsonify(resp_dict), self.code</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">@custom_error_handler</span></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserNotExisted</span><span class="hljs-params">(CustomError)</span>:</span></span><br><span class="line">    code = <span class="hljs-number">404</span></span><br><span class="line">    message = <span class="hljs-string">"用户不存在或已删除"</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">@custom_error_handler</span></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PasswordInvalid</span><span class="hljs-params">(CustomError)</span>:</span></span><br><span class="line">    code = <span class="hljs-number">400</span></span><br><span class="line">    message = <span class="hljs-string">"密码不合法"</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">@custom_error_handler</span></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ValidateError</span><span class="hljs-params">(CustomError)</span>:</span></span><br><span class="line">    code = <span class="hljs-number">400</span></span><br><span class="line">    message = <span class="hljs-string">"参数不合法"</span></span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>需要在create_app中注册</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="hljs-keyword">from</span> .errors <span class="hljs-keyword">import</span> custom_error_handler</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_app</span><span class="hljs-params">(env: str)</span> -&gt; Flask:</span></span><br><span class="line">		...</span><br><span class="line">    </span><br><span class="line">    custom_error_handler.init_app(app)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> app</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>还需要配置一下jwt</p>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">JwtConfig</span>:</span></span><br><span class="line">    JWT_SECRET_KEY = <span class="hljs-string">"you-will-never-guess"</span></span><br><span class="line">    JWT_ERROR_MESSAGE_KEY = <span class="hljs-string">"message"</span></span><br><span class="line">    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=<span class="hljs-number">1</span>) <span class="hljs-comment"># access_token有效期1天</span></span><br><span class="line">    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=<span class="hljs-number">30</span>) <span class="hljs-comment"># refresh_token有效期30天</span></span><br><span class="line">    JWT_COOKIE_CSRF_PROTECT = <span class="hljs-literal">False</span></span><br><span class="line">    JWT_CSRF_IN_COOKIES = <span class="hljs-literal">True</span></span><br><span class="line">    JWT_ACCESS_COOKIE_PATH = <span class="hljs-string">"/"</span></span><br><span class="line">    JWT_REFRESH_COOKIE_PATH = <span class="hljs-string">"/"</span></span><br><span class="line">    JWT_ACCESS_CSRF_HEADER_NAME = <span class="hljs-string">"X-CSRF-TOKEN"</span></span><br><span class="line">    JWT_REFRESH_CSRF_HEADER_NAME = <span class="hljs-string">"X-CSRF-TOKEN"</span></span><br><span class="line">    JWT_TOKEN_LOCATION = [<span class="hljs-string">"headers"</span>, <span class="hljs-string">"cookies"</span>, <span class="hljs-string">"query_string"</span>, <span class="hljs-string">"json"</span>]</span><br><span class="line">    JWT_CSRF_METHODS = [<span class="hljs-string">"POST"</span>, <span class="hljs-string">"PUT"</span>, <span class="hljs-string">"PATCH"</span>, <span class="hljs-string">"DELETE"</span>]</span><br><span class="line">    JWT_BLACKLIST_ENABLED = <span class="hljs-literal">False</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DevelopmentConfig</span><span class="hljs-params">(BasicConfig, SqlalchemyConfig, JwtConfig)</span>:</span></span><br><span class="line">    ...</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>测试注册接口</p>
+<p><img src="https://i.loli.net/2019/11/09/IaqRrSf2VTeObB5.jpg" alt="Xnip2019-11-09_14-27-59.jpg"></p>
+<p>测试登录接口</p>
+<p><img src="https://i.loli.net/2019/11/09/kXOznHTZYjwby2G.jpg" alt="Xnip2019-11-09_14-28-21.jpg"></p>
+<p>在我们的demo接口上添加jwt_required装饰器验证jwt</p>
+<blockquote>
+<p>app/api_v1/schemas/__init__.py</p>
+</blockquote>
+<p></p><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> app.core <span class="hljs-keyword">import</span> Router</span><br><span class="line"><span class="hljs-keyword">from</span> . <span class="hljs-keyword">import</span> demo, auth</span><br><span class="line"><span class="hljs-keyword">from</span> flask_jwt_extended <span class="hljs-keyword">import</span> jwt_required</span><br><span class="line"></span><br><span class="line">router = Router(decorators=[])</span><br><span class="line">router.url(</span><br><span class="line">    (<span class="hljs-string">'/demo'</span>, demo.router, [jwt_required]),</span><br><span class="line">    (<span class="hljs-string">'/auth'</span>, auth.router),</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>访问<a href="http://127.0.0.1:5000/v1/demo/hello" target="_blank" rel="noopener">http://127.0.0.1:5000/v1/demo/hello</a></p>
+<p></p><figure class="highlight json hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">{</span><br><span class="line">  <span class="hljs-attr">"request_id"</span>: <span class="hljs-string">"7c9cbc53-bd25-46ab-9a17-cbb1c7dd91c0"</span>,</span><br><span class="line">  <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Missing Authorization Header"</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>为此接口添加之前登录返回的token，再次请求成功获取结果</p>
+<p><img src="https://i.loli.net/2019/11/09/JCVPdkQqZwDWeth.jpg" alt="Xnip2019-11-09_14-35-34.jpg"></p>
+<p>下一节将介绍使用flask_sqlalchemy完成复杂查询。</p>
+</body></html>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2019/11/09/%E4%BD%BF%E7%94%A8flask%E5%88%9B%E5%BB%BArestful%E9%A3%8E%E6%A0%BC%E6%8E%A5%E5%8F%A3/%E4%BD%BF%E7%94%A8sqlalchemy%E6%9F%A5%E8%AF%A2/">4. 使用sqlalchemy查询</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2019/11/03/%E8%80%81%E5%A9%86%E5%A4%A7%E4%BA%BA%E7%9A%84%E5%8D%9A%E5%AE%A2/%E4%B9%A0%E6%83%AF%E7%9A%84%E9%87%8D%E8%A6%81/">习惯的重要</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2021 Defpis&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                    
+                    
+                    <a class="column is-narrow has-text-black" title="GitHub"
+                        href="https://github.com/defpis">
+                        
+                        GitHub
+                        
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/" target="_blank" rel="noopener">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="站内搜索" />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>

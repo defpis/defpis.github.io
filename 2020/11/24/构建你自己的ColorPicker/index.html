@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>构建你自己的ColorPicker - Hexo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+
+
+
+
+    <meta name="description" content="好久没有更新博客了，真的印证了那句话：“字节一年，人间三年”，从入职到现在一直忙于项目上的事情。 最近在项目中使用到了颜色选择器，公司的组件库无法满足需要，所以我去 Github 找了相关实现，最后通过 react-color 凑合完成了任务。但是完成任务的我一直很好奇它是如何实现的，一不做二不休，干脆自己搞一个，万一 react-color 也没法满足项目需要的时候，我还可以手撸顶上去。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="构建你自己的ColorPicker">
+<meta property="og:url" content="https://defpis.github.io/2020/11/24/%E6%9E%84%E5%BB%BA%E4%BD%A0%E8%87%AA%E5%B7%B1%E7%9A%84ColorPicker/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="好久没有更新博客了，真的印证了那句话：“字节一年，人间三年”，从入职到现在一直忙于项目上的事情。 最近在项目中使用到了颜色选择器，公司的组件库无法满足需要，所以我去 Github 找了相关实现，最后通过 react-color 凑合完成了任务。但是完成任务的我一直很好奇它是如何实现的，一不做二不休，干脆自己搞一个，万一 react-color 也没法满足项目需要的时候，我还可以手撸顶上去。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2020/11/24/Lqf9GJEj4W8HyrN.png">
+<meta property="article:published_time" content="2020-11-24T12:13:17.000Z">
+<meta property="article:modified_time" content="2020-11-24T14:58:11.446Z">
+<meta property="article:author" content="Defpis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/11/24/Lqf9GJEj4W8HyrN.png">
+
+
+
+
+
+<link rel="icon" href="/favicon.png">
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt="" height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/categories">分类</a>
+            
+            <a class="navbar-item "
+               href="/tags">标签</a>
+            
+            <a class="navbar-item "
+               href="/archives">归档</a>
+            
+            <a class="navbar-item "
+               href="/about">关于我</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="搜索" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" href="https://github.com/defpis" target="_blank" rel="noopener">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            构建你自己的ColorPicker
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2020-11-24T12:13:17.000Z" itemprop="datePublished">11月 24 2020</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            13 分钟 读完 (约 1923 字)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><p>好久没有更新博客了，真的印证了那句话：“字节一年，人间三年”，从入职到现在一直忙于项目上的事情。</p>
+<p>最近在项目中使用到了颜色选择器，公司的组件库无法满足需要，所以我去 Github 找了相关实现，最后通过 react-color 凑合完成了任务。但是完成任务的我一直很好奇它是如何实现的，一不做二不休，干脆自己搞一个，万一 react-color 也没法满足项目需要的时候，我还可以手撸顶上去。</p>
+<a id="more"></a>
+
+<p>作为一个前端程序猿，还是比较熟悉颜色编码的，RGB 和 HEX 都能熟练使用，但是对于更多编码 HSL、HSB/HSV、CMYK 和 YUV 等就知之甚少了，并不清楚为啥同一个东西要整出这么多表现形式，为此我查阅了相关资料，收获颇丰。</p>
+<p>RGB 和 HEX 本质上是一样的，都是通过 10 进制 0-255 或 16 进制 00-ff 来表示 R-Red、G-Green 和 B-Blue 三种光的权重，通过混合三种光来获的各种颜色。这种表示方法对于机器很好理解，但是对于人类就不那么直观了，一眼瞧过去，很难知道这是啥颜色，鲜艳不鲜艳，明亮还是灰暗，所以人们就基于这种痛点重新对颜色进行了编码，主要分为了 HSL、HSB/HSV 两种编码方式。（CMYK 和 YUV 暂时没有了解，如果有兴趣可以一起讨论）</p>
+<blockquote>
+<p>查看<a href="https://www.zhihu.com/question/22077462" target="_blank" rel="noopener">色彩空间中的 HSL、HSV、HSB 有什么区别</a></p>
+</blockquote>
+<p>首先，HSB 和 HSV 是同一个东西，只是名称不同。</p>
+<p>HSB 和 HSL 在字面意思上是一样的：</p>
+<ul>
+<li>H 指的是色相（Hue），就是颜色名称，例如“红色”、“蓝色”；</li>
+<li>S 指的是饱和度（Saturation），即颜色的纯度；</li>
+<li>L（Lightness） 和 B（Brightness）是明度，颜色的明亮程度</li>
+</ul>
+<p>在表现和原理上，HSB 和 HSL 中的 H（色相）完全一致，但是二者的 S（饱和度）和不一样，L 和 B（明度）也不一样。</p>
+<ul>
+<li>HSB 中的 S 控制纯色中混入白色的量，值越大，白色越少，颜色越纯；</li>
+<li>HSB 中的 B 控制纯色中混入黑色的量，值越大，黑色越少，明度越高；</li>
+<li>HSL 中的 S 和黑白没有关系，饱和度不控制颜色中混入黑白的多寡；</li>
+<li>HSL 中的 L 控制纯色中的混入的黑白两种颜色，作用等同于 HSB 中的 S 和 B 之和；</li>
+</ul>
+<p>想必看到这里的你一定还是很迷糊为啥可以通过参杂黑白控制饱和度或明度，而饱和度具体定义有代表什么？别着急，可以看一下这篇文章<a href="https://zhuanlan.zhihu.com/p/30409532" target="_blank" rel="noopener">公式剖析色彩三要素：色相、饱和度、明度</a>，里面比较详细阐述了色彩三要素具体的含义，并且非常好的为每一种要素的提供了数学概念，通过数学概念能深入理解颜色的表示方法。</p>
+<p>至此理论知识补充的差不多了，可以开始实践操作了。我也去网上找了已有的实现，按照自己的理解重新撸了一个版本。</p>
+<p>实际效果如图</p>
+<p><img src="https://i.loli.net/2020/11/24/Lqf9GJEj4W8HyrN.png" alt=""></p>
+<p>UI 主要分为三部分</p>
+<ul>
+<li>饱和度面板</li>
+<li>色相拖动条</li>
+<li>透明度拖动条</li>
+</ul>
+<p>目录结构如下</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">ColorPicker</span><br><span class="line">├── ColorPicker.scss</span><br><span class="line">├── ColorPicker.tsx</span><br><span class="line">├── components</span><br><span class="line">│   ├── Alpha                 // 透明度</span><br><span class="line">│   │   ├── Alpha.scss</span><br><span class="line">│   │   └── Alpha.tsx</span><br><span class="line">│   ├── Hue                   // 色相</span><br><span class="line">│   │   ├── Hue.scss</span><br><span class="line">│   │   └── Hue.tsx</span><br><span class="line">│   └── Saturation            // 饱和度</span><br><span class="line">│       ├── Saturation.scss</span><br><span class="line">│       └── Saturation.tsx</span><br><span class="line">└── hooks                     // 通用逻辑</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>首先来构建饱和度面板</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&lt;div</span><br><span class="line">  style={{ width: `${width}px`, height: `${height}px` }}</span><br><span class="line">  className="color-picker-wrapper color-picker-saturation"</span><br><span class="line">&gt;</span><br><span class="line">  &lt;div</span><br><span class="line">    ref={ref}</span><br><span class="line">    style={{ background: `hsl(${hsva.h}, 100%, 50%)` }}</span><br><span class="line">    className="saturation"</span><br><span class="line">  &gt;</span><br><span class="line">    &lt;div</span><br><span class="line">      className="saturation-thumb"</span><br><span class="line">      style={{</span><br><span class="line">        left: `${pos.offsetX}px`,</span><br><span class="line">        top: `${pos.offsetY}px`,</span><br><span class="line">        borderColor: pos.offsetY &lt; height / 2 ? "black" : "white",</span><br><span class="line">      }}</span><br><span class="line">    /&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/div&gt;</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>通过伪元素来叠加两层透明渐变遮罩层，一层从全白到透明，另一层从全黑到透明，分表向 X 和 Y 轴渐变，样式如下</p>
+<p></p><figure class="highlight scss hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-selector-class">.color-picker-saturation</span> {</span><br><span class="line">  <span class="hljs-keyword">@mixin</span> saturation-pseudo-element {</span><br><span class="line">    <span class="hljs-keyword">@include</span> full();</span><br><span class="line">    <span class="hljs-attribute">content</span>: <span class="hljs-string">""</span>;</span><br><span class="line">    <span class="hljs-attribute">position</span>: absolute;</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">  <span class="hljs-selector-class">.saturation</span> {</span><br><span class="line">    <span class="hljs-keyword">@include</span> full();</span><br><span class="line">    <span class="hljs-attribute">background</span>: transparent;</span><br><span class="line">    <span class="hljs-attribute">cursor</span>: crosshair;</span><br><span class="line"></span><br><span class="line">    &amp;<span class="hljs-selector-pseudo">::before</span> {</span><br><span class="line">      <span class="hljs-keyword">@include</span> saturation-pseudo-element();</span><br><span class="line">      <span class="hljs-attribute">background</span>: linear-gradient(to right, white, transparent);</span><br><span class="line">    }</span><br><span class="line">    &amp;<span class="hljs-selector-pseudo">::after</span> {</span><br><span class="line">      <span class="hljs-keyword">@include</span> saturation-pseudo-element();</span><br><span class="line">      <span class="hljs-attribute">background</span>: linear-gradient(to top, black, transparent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="hljs-selector-class">.saturation-thumb</span> {</span><br><span class="line">      <span class="hljs-attribute">position</span>: absolute;</span><br><span class="line">      <span class="hljs-attribute">transform</span>: translate(-<span class="hljs-number">10px</span>, -<span class="hljs-number">8px</span>);</span><br><span class="line">      <span class="hljs-attribute">z-index</span>: <span class="hljs-number">1</span>;</span><br><span class="line">      <span class="hljs-attribute">width</span>: <span class="hljs-number">15px</span>;</span><br><span class="line">      <span class="hljs-attribute">height</span>: <span class="hljs-number">15px</span>;</span><br><span class="line">      <span class="hljs-attribute">border-radius</span>: <span class="hljs-number">50%</span>;</span><br><span class="line">      <span class="hljs-attribute">border</span>: <span class="hljs-number">1px</span> solid;</span><br><span class="line">      <span class="hljs-attribute">background-color</span>: transparent;</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>预留了一个 div 作为滑块，通过设置为绝对定位，然后根据传入的坐标来渲染。</p>
+<p>至于拖动的逻辑，封装到成了 useMouseDrag，方便之后 Slider 组件复用</p>
+<p>可以像 useRef 一样使用获得一个 ref 引用</p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">const</span> [ref, pos, setPos] = useMouseDrag&lt;HTMLDivElement&gt;(<span class="hljs-literal">null</span>);</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>通过 ref 引用需要检测位置变化的父容器</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;div</span><br><span class="line">  ref={ref}</span><br><span class="line">  style={{ background: `hsl(${hsva.h}, 100%, 50%)` }}</span><br><span class="line">  className="saturation"</span><br><span class="line">&gt;</span><br><span class="line">  ...</span><br><span class="line">&lt;/div&gt;</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>这样 pos 就可以获取鼠标拖动在父容器的坐标</p>
+<p>useMouseDrag 具体实现如下：</p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">interface</span> IPosition {</span><br><span class="line">  offsetX: <span class="hljs-built_in">number</span>;</span><br><span class="line">  offsetY: <span class="hljs-built_in">number</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useMouseDrag</span>&lt;<span class="hljs-title">T</span> <span class="hljs-title">extends</span> <span class="hljs-title">HTMLElement</span>&gt;(<span class="hljs-params"></span></span></span><br><span class="line"><span class="hljs-function"><span class="hljs-params">  element: T | <span class="hljs-literal">null</span></span></span></span><br><span class="line"><span class="hljs-function"><span class="hljs-params"></span>): [<span class="hljs-title">RefObject</span>&lt;<span class="hljs-title">T</span>&gt;, <span class="hljs-title">IPosition</span>, <span class="hljs-title">Dispatch</span>&lt;<span class="hljs-title">SetStateAction</span>&lt;<span class="hljs-title">IPosition</span>&gt;&gt;] </span>{</span><br><span class="line">  <span class="hljs-keyword">const</span> ref = useRef&lt;T&gt;(element);</span><br><span class="line">  <span class="hljs-keyword">const</span> [start, toggle] = useToggle(<span class="hljs-literal">false</span>);</span><br><span class="line">  <span class="hljs-keyword">const</span> [pos, setPos] = useState&lt;IPosition&gt;({ offsetX: <span class="hljs-number">0</span>, offsetY: <span class="hljs-number">0</span> });</span><br><span class="line"></span><br><span class="line">  <span class="hljs-keyword">const</span> setPosition = useMemo(</span><br><span class="line">    () =&gt;</span><br><span class="line">      throttle(<span class="hljs-function">(<span class="hljs-params">{ clientX, clientY }: MouseEvent</span>) =&gt;</span> {</span><br><span class="line">        <span class="hljs-keyword">const</span> element = ref.current;</span><br><span class="line">        <span class="hljs-keyword">if</span> (!element) <span class="hljs-keyword">return</span>;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">const</span> { left, top } = element.getBoundingClientRect();</span><br><span class="line">        <span class="hljs-keyword">const</span> offsetX = clamp(clientX - left, <span class="hljs-number">0</span>, element.clientWidth);</span><br><span class="line">        <span class="hljs-keyword">const</span> offsetY = clamp(clientY - top, <span class="hljs-number">0</span>, element.clientHeight);</span><br><span class="line">        setPos({ offsetX, offsetY });</span><br><span class="line">      }, <span class="hljs-number">40</span>),</span><br><span class="line">    []</span><br><span class="line">  );</span><br><span class="line">  <span class="hljs-keyword">const</span> startDrag = useCallback(</span><br><span class="line">    (event: MouseEvent) =&gt; {</span><br><span class="line">      setPosition(event);</span><br><span class="line">      toggle(<span class="hljs-literal">true</span>);</span><br><span class="line">    },</span><br><span class="line">    [toggle, setPosition]</span><br><span class="line">  );</span><br><span class="line">  <span class="hljs-keyword">const</span> dragging = useCallback(<span class="hljs-function">(<span class="hljs-params">event: MouseEvent</span>) =&gt;</span> setPosition(event), [</span><br><span class="line">    setPosition,</span><br><span class="line">  ]);</span><br><span class="line">  <span class="hljs-keyword">const</span> stopDrag = useCallback(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> toggle(<span class="hljs-literal">false</span>), [toggle]);</span><br><span class="line"></span><br><span class="line">  useEffect(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {</span><br><span class="line">    <span class="hljs-keyword">const</span> element = ref.current;</span><br><span class="line">    <span class="hljs-keyword">if</span> (!element) <span class="hljs-keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    element.addEventListener(<span class="hljs-string">"mousedown"</span>, startDrag);</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {</span><br><span class="line">      element.removeEventListener(<span class="hljs-string">"mousedown"</span>, startDrag);</span><br><span class="line">    };</span><br><span class="line">  }, [startDrag]);</span><br><span class="line"></span><br><span class="line">  useEffect(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {</span><br><span class="line">    <span class="hljs-keyword">const</span> element = ref.current;</span><br><span class="line">    <span class="hljs-keyword">if</span> (!element || !start) <span class="hljs-keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    element.addEventListener(<span class="hljs-string">"mousemove"</span>, dragging);</span><br><span class="line">    <span class="hljs-built_in">document</span>.addEventListener(<span class="hljs-string">"mouseup"</span>, stopDrag);</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {</span><br><span class="line">      element.removeEventListener(<span class="hljs-string">"mousemove"</span>, dragging);</span><br><span class="line">      <span class="hljs-built_in">document</span>.removeEventListener(<span class="hljs-string">"mouseup"</span>, stopDrag);</span><br><span class="line">    };</span><br><span class="line">  }, [start, dragging, stopDrag]);</span><br><span class="line"></span><br><span class="line">  <span class="hljs-keyword">return</span> [ref, pos, setPos];</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>之后来构建色相拖动条，还是同样的套路，熟悉的配方</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;div</span><br><span class="line">  style={{ width: `${width}px`, height: `${height}px` }}</span><br><span class="line">  className="color-picker-wrapper color-picker-hue"</span><br><span class="line">&gt;</span><br><span class="line">  &lt;div ref={ref} className="hue"&gt;</span><br><span class="line">    &lt;div</span><br><span class="line">      className="hue-thumb"</span><br><span class="line">      style={{</span><br><span class="line">        left: `${pos.offsetX}px`,</span><br><span class="line">      }}</span><br><span class="line">    /&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/div&gt;</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>通过指定关键颜色渐变形成色相环</p>
+<p></p><figure class="highlight scss hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-selector-class">.color-picker-hue</span> {</span><br><span class="line">  <span class="hljs-attribute">box-sizing</span>: border-box;</span><br><span class="line">  <span class="hljs-attribute">border-left</span>: <span class="hljs-number">4px</span> solid <span class="hljs-number">#f00</span>;</span><br><span class="line">  <span class="hljs-attribute">border-right</span>: <span class="hljs-number">4px</span> solid <span class="hljs-number">#f00</span>;</span><br><span class="line"></span><br><span class="line">  <span class="hljs-selector-class">.hue</span> {</span><br><span class="line">    <span class="hljs-keyword">@include</span> full();</span><br><span class="line">    <span class="hljs-attribute">background</span>: linear-gradient(</span><br><span class="line">      to right,</span><br><span class="line">      <span class="hljs-number">#f00</span> <span class="hljs-number">0%</span>,</span><br><span class="line">      <span class="hljs-number">#ff0</span> <span class="hljs-number">16.66%</span>,</span><br><span class="line">      <span class="hljs-number">#0f0</span> <span class="hljs-number">33.33%</span>,</span><br><span class="line">      <span class="hljs-number">#0ff</span> <span class="hljs-number">50%</span>,</span><br><span class="line">      <span class="hljs-number">#00f</span> <span class="hljs-number">66.66%</span>,</span><br><span class="line">      <span class="hljs-number">#f0f</span> <span class="hljs-number">83.33%</span>,</span><br><span class="line">      <span class="hljs-number">#f00</span> <span class="hljs-number">100%</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="hljs-selector-class">.hue-thumb</span> {</span><br><span class="line">      <span class="hljs-attribute">position</span>: absolute;</span><br><span class="line">      <span class="hljs-attribute">width</span>: <span class="hljs-number">8px</span>;</span><br><span class="line">      <span class="hljs-attribute">height</span>: <span class="hljs-number">100%</span>;</span><br><span class="line">      <span class="hljs-attribute">background-color</span>: <span class="hljs-number">#fff</span>;</span><br><span class="line">      <span class="hljs-attribute">box-shadow</span>: <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">2px</span> rgba(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0.6</span>);</span><br><span class="line">      <span class="hljs-attribute">transform</span>: translateX(-<span class="hljs-number">4px</span>);</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>拖动的逻辑复用 useMouseDrag</p>
+<p>同理透明度拖动条也是一样</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&lt;div</span><br><span class="line">  style={{</span><br><span class="line">    width: `${width}px`,</span><br><span class="line">    height: `${height}px`,</span><br><span class="line">    borderRightColor: color,</span><br><span class="line">  }}</span><br><span class="line">  className="color-picker-wrapper color-picker-alpha"</span><br><span class="line">&gt;</span><br><span class="line">  &lt;div</span><br><span class="line">    ref={ref}</span><br><span class="line">    className="alpha"</span><br><span class="line">    style={{</span><br><span class="line">      background: `linear-gradient(to right, transparent, ${color})`,</span><br><span class="line">    }}</span><br><span class="line">  &gt;</span><br><span class="line">    &lt;div</span><br><span class="line">      className="alpha-thumb"</span><br><span class="line">      style={{</span><br><span class="line">        left: `${pos.offsetX}px`,</span><br><span class="line">      }}</span><br><span class="line">    /&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/div&gt;</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p></p><figure class="highlight scss hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-selector-class">.color-picker-alpha</span> {</span><br><span class="line">  <span class="hljs-attribute">box-sizing</span>: border-box;</span><br><span class="line">  <span class="hljs-attribute">border-left</span>: <span class="hljs-number">4px</span> solid;</span><br><span class="line">  <span class="hljs-attribute">border-left-color</span>: transparent;</span><br><span class="line">  <span class="hljs-attribute">border-right</span>: <span class="hljs-number">4px</span> solid;</span><br><span class="line">  <span class="hljs-attribute">background-color</span>: white;</span><br><span class="line">  <span class="hljs-attribute">background-image</span>: linear-gradient(</span><br><span class="line">      <span class="hljs-number">45deg</span>,</span><br><span class="line">      <span class="hljs-number">#c5c5c5</span> <span class="hljs-number">25%</span>,</span><br><span class="line">      transparent <span class="hljs-number">0</span>,</span><br><span class="line">      transparent <span class="hljs-number">75%</span>,</span><br><span class="line">      <span class="hljs-number">#c5c5c5</span> <span class="hljs-number">0</span>,</span><br><span class="line">      <span class="hljs-number">#c5c5c5</span></span><br><span class="line">    ), linear-gradient(<span class="hljs-number">45deg</span>, <span class="hljs-number">#c5c5c5</span> <span class="hljs-number">25%</span>, transparent <span class="hljs-number">0</span>, transparent <span class="hljs-number">75%</span>, <span class="hljs-number">#c5c5c5</span></span><br><span class="line">        <span class="hljs-number">0</span>, <span class="hljs-number">#c5c5c5</span>);</span><br><span class="line">  <span class="hljs-attribute">background-size</span>: <span class="hljs-number">10px</span> <span class="hljs-number">10px</span>;</span><br><span class="line">  <span class="hljs-attribute">background-position</span>: <span class="hljs-number">0</span> <span class="hljs-number">0</span>, <span class="hljs-number">5px</span> <span class="hljs-number">5px</span>;</span><br><span class="line"></span><br><span class="line">  <span class="hljs-selector-class">.alpha</span> {</span><br><span class="line">    <span class="hljs-keyword">@include</span> full();</span><br><span class="line"></span><br><span class="line">    <span class="hljs-selector-class">.alpha-thumb</span> {</span><br><span class="line">      <span class="hljs-attribute">position</span>: absolute;</span><br><span class="line">      <span class="hljs-attribute">width</span>: <span class="hljs-number">8px</span>;</span><br><span class="line">      <span class="hljs-attribute">height</span>: <span class="hljs-number">100%</span>;</span><br><span class="line">      <span class="hljs-attribute">background-color</span>: <span class="hljs-number">#fff</span>;</span><br><span class="line">      <span class="hljs-attribute">box-shadow</span>: <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">2px</span> rgba(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0.6</span>);</span><br><span class="line">      <span class="hljs-attribute">transform</span>: translateX(-<span class="hljs-number">4px</span>);</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>这样通过计算拖动位置和宽度或高度的比值，就可以计算相应的 H、S、V 和 A 值，计算方式如下：</p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">import</span> { round } <span class="hljs-keyword">from</span> <span class="hljs-string">"lodash"</span>;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">const</span> s = round(pos.offsetX / element.clientWidth, <span class="hljs-number">2</span>);</span><br><span class="line"><span class="hljs-keyword">const</span> v = round((element.clientHeight - pos.offsetY) / element.clientHeight, <span class="hljs-number">2</span>);</span><br><span class="line"><span class="hljs-keyword">const</span> h = round((pos.offsetX / element.clientWidth) * <span class="hljs-number">360</span>);</span><br><span class="line"><span class="hljs-keyword">const</span> a = round(pos.offsetX / element.clientWidth, <span class="hljs-number">2</span>);</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>为了显示获得 HSV 值，将其转换为了 HSL（CSS 支持 HSL 而不是 HSV）作为 div 的 CSS 样式</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">const hsl = hsv2hsl(hsva);</span><br><span class="line">const color = `hsl(${hsva.h}, ${hsl.s * 100}%, ${hsl.l * 100}%)`;</span><br><span class="line"></span><br><span class="line">&lt;div</span><br><span class="line">  style={{ backgroundColor: color, opacity: `${hsva.a * 100}%` }}</span><br><span class="line">  className="color-picker-block"</span><br><span class="line">/&gt;;</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>HSV 转 HSL 的公式网上也能随便找到</p>
+<p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">const</span> hsv2hsl = ({ h, s, v }: IHSVA): { h: <span class="hljs-built_in">number</span>; s: <span class="hljs-built_in">number</span>; l: <span class="hljs-built_in">number</span> } =&gt; {</span><br><span class="line">  <span class="hljs-keyword">return</span> {</span><br><span class="line">    h,</span><br><span class="line">    s: round((s * v) / ((h = (<span class="hljs-number">2</span> - s) * v) &lt; <span class="hljs-number">1</span> ? h : <span class="hljs-number">2</span> - h) || <span class="hljs-number">0</span>, <span class="hljs-number">2</span>),</span><br><span class="line">    l: round(h / <span class="hljs-number">2</span>, <span class="hljs-number">2</span>),</span><br><span class="line">  };</span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>这样任何颜色更改都会在这个 div 上生效</p>
+<p>至此这个版本颜色选择器就搞定了，非常简单，但是对于我来说简单的东西想要做好做完美也很不容易。日常工作中不重复造轮子用于生产，但是通过构建简单版本的轮子来学习我认为很有必要。</p>
+</body></html>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2021/02/09/%E4%BD%BF%E7%94%A8RxJS%E5%AE%9E%E7%8E%B0%E5%BF%AB%E6%8D%B7%E9%94%AE/">使用RxJS实现快捷键</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2020/08/09/%E6%9E%84%E5%BB%BA%E4%BD%A0%E8%87%AA%E5%B7%B1%E7%9A%84React/">构建你自己的React</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2021 Defpis&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                    
+                    
+                    <a class="column is-narrow has-text-black" title="GitHub"
+                        href="https://github.com/defpis">
+                        
+                        GitHub
+                        
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/" target="_blank" rel="noopener">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="站内搜索" />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>

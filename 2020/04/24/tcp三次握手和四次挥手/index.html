@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>tcp三次握手和四次挥手 - Hexo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+
+
+
+
+    <meta name="description" content="文章链接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tcp三次握手和四次挥手">
+<meta property="og:url" content="https://defpis.github.io/2020/04/24/tcp%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E5%92%8C%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="文章链接">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2020/04/07/Ck8v531O7VFwigT.jpg">
+<meta property="og:image" content="https://i.loli.net/2020/04/07/JKv3wlpc5zeCWPY.png">
+<meta property="og:image" content="https://i.loli.net/2020/04/07/m4O7U3CZnQpIksM.png">
+<meta property="article:published_time" content="2020-04-24T07:13:22.000Z">
+<meta property="article:modified_time" content="2020-10-13T07:28:44.655Z">
+<meta property="article:author" content="Defpis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/04/07/Ck8v531O7VFwigT.jpg">
+
+
+
+
+
+<link rel="icon" href="/favicon.png">
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt="" height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/categories">分类</a>
+            
+            <a class="navbar-item "
+               href="/tags">标签</a>
+            
+            <a class="navbar-item "
+               href="/archives">归档</a>
+            
+            <a class="navbar-item "
+               href="/about">关于我</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="搜索" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" href="https://github.com/defpis" target="_blank" rel="noopener">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            tcp三次握手和四次挥手
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2020-04-24T07:13:22.000Z" itemprop="datePublished">4月 24 2020</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            6 分钟 读完 (约 894 字)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><blockquote>
+<p><a href="https://github.com/defpis/all-about-http-that-you-should-know/blob/master/docs/TCP%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E5%92%8C%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B.md" target="_blank" rel="noopener">文章链接</a></p>
+</blockquote>
+<a id="more"></a>
+
+<h2 id="创建一个简单的服务"><a href="#创建一个简单的服务" class="headerlink" title="创建一个简单的服务"></a>创建一个简单的服务</h2><p></p><figure class="highlight typescript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">import</span> http <span class="hljs-keyword">from</span> <span class="hljs-string">'http'</span>;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">const</span> server = http.createServer(</span><br><span class="line">  (req: http.IncomingMessage, res: http.ServerResponse) =&gt; {</span><br><span class="line">    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${req.method}</span> <span class="hljs-subst">${req.url}</span>`</span>);</span><br><span class="line">    res.write(<span class="hljs-string">'Hello World!'</span>);</span><br><span class="line">    res.end();</span><br><span class="line">  },</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">const</span> host = <span class="hljs-string">'localhost'</span>;</span><br><span class="line"><span class="hljs-keyword">const</span> port = <span class="hljs-number">4000</span>;</span><br><span class="line"><span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Start server on <span class="hljs-subst">${host}</span>:<span class="hljs-subst">${port}</span>`</span>);</span><br><span class="line">server.listen(port, host);</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>启动服务，并监视文件改变以重启服务</p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">➜ npm run start:dev</span><br><span class="line"></span><br><span class="line">&gt; create-custom-operators-in-rxjs@1.0.0 start:dev /Users/defpis/Workspace/all-about-http-that-you-should-know</span><br><span class="line">&gt; tsnd --respawn --transpileOnly ./src</span><br><span class="line"></span><br><span class="line">Using ts-node version 8.8.1, typescript version 3.8.3</span><br><span class="line">Start server on localhost:4000</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>使用命令测试访问</p>
+<p></p><figure class="highlight bash hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜ curl http://localhost:4000</span><br><span class="line">Hello World!·</span><br></pre></td></tr></tbody></table></figure><p></p>
+<h2 id="使用-Wireshark-抓包"><a href="#使用-Wireshark-抓包" class="headerlink" title="使用 Wireshark 抓包"></a>使用 Wireshark 抓包</h2><p>打开 Wireshark，在过滤器中输入 <code>host 127.0.0.1 and port 4000</code>，选择 <code>Loopback: Io0</code>（本地环回接口）以监测流量。</p>
+<p>使用 curl 命令发送请求，然后查看 Wireshark 面板，可以看到完整的网络连接与断开过程</p>
+<p><img src="https://i.loli.net/2020/04/07/Ck8v531O7VFwigT.jpg" alt="Wireshark 面板"></p>
+<p>点击一个连接，可以查看连接的详细信息，从上到下分为</p>
+<ul>
+<li>frame：链路层封装</li>
+<li>null：无</li>
+<li>ip：网络层封装</li>
+<li>tcp：传输层封装</li>
+</ul>
+<p>点开 tcp 传输层封包信息</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">Transmission Control Protocol, Src Port: 51428, Dst Port: 4000, Seq: 0, Len: 0</span><br><span class="line">    Source Port: 51428</span><br><span class="line">    Destination Port: 4000</span><br><span class="line">    [Stream index: 1]</span><br><span class="line">    [TCP Segment Len: 0]</span><br><span class="line">    Sequence number: 0    (relative sequence number)</span><br><span class="line">    Sequence number (raw): 2901135694</span><br><span class="line">    [Next sequence number: 1    (relative sequence number)]</span><br><span class="line">    Acknowledgment number: 0</span><br><span class="line">    Acknowledgment number (raw): 0</span><br><span class="line">    1011 .... = Header Length: 44 bytes (11)</span><br><span class="line">    Flags: 0x002 (SYN)</span><br><span class="line">    Window size value: 65535</span><br><span class="line">    [Calculated window size: 65535]</span><br><span class="line">    Checksum: 0xfe34 [unverified]</span><br><span class="line">    [Checksum Status: Unverified]</span><br><span class="line">    Urgent pointer: 0</span><br><span class="line">    Options: (24 bytes), Maximum segment size, No-Operation (NOP), Window scale, No-Operation (NOP), No-Operation (NOP), Timestamps, SACK permitted, End of Option List (EOL)</span><br><span class="line">    [Timestamps]</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>首先关注 <code>Flags</code>，把它展开可以得到</p>
+<p></p><figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Flags: 0x002 (SYN)</span><br><span class="line">    000. .... .... = Reserved: Not set</span><br><span class="line">    ...0 .... .... = Nonce: Not set</span><br><span class="line">    .... 0... .... = Congestion Window Reduced (CWR): Not set</span><br><span class="line">    .... .0.. .... = ECN-Echo: Not set</span><br><span class="line">    .... ..0. .... = Urgent: Not set</span><br><span class="line">    .... ...0 .... = Acknowledgment: Not set</span><br><span class="line">    .... .... 0... = Push: Not set</span><br><span class="line">    .... .... .0.. = Reset: Not set</span><br><span class="line">    .... .... ..1. = Syn: Set</span><br><span class="line">    .... .... ...0 = Fin: Not set</span><br><span class="line">    [TCP Flags: ··········S·]</span><br></pre></td></tr></tbody></table></figure><p></p>
+<p>显而易见，像 SYN、ACK 或 FIN 这些符号其实都是二进制的标志位</p>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>十六进制</th>
+<th>二进制</th>
+<th>阶段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[SYN]</td>
+<td>0x002</td>
+<td>000,000,000,010</td>
+<td>第一次握手</td>
+</tr>
+<tr>
+<td>[SYN, ACK]</td>
+<td>0x012</td>
+<td>000,000,010,010</td>
+<td>第二次握手</td>
+</tr>
+<tr>
+<td>[ACK]</td>
+<td>0x010</td>
+<td>000,000,010,000</td>
+<td>第三次握手，第二次挥手，第四次挥手</td>
+</tr>
+<tr>
+<td>[FIN, ACK]</td>
+<td>0x011</td>
+<td>000,000,010,001</td>
+<td>第一次挥手，第三次挥手</td>
+</tr>
+</tbody></table>
+<p>除此之外，tcp 封包中还包含用于验证的字段</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>全称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Seq/tcp.seq</td>
+<td>Sequence number</td>
+<td>表示曾经发送过数据的字节数+1，0 表示之前没有发送过数据</td>
+</tr>
+<tr>
+<td>Ack/tcp.ack</td>
+<td>Acknowledgment number</td>
+<td>表示期待下次对方发送过来的 Seq 的值</td>
+</tr>
+</tbody></table>
+<p>理解清楚这些概念就可以开始分析 tcp 连接建立的过程——三次握手。</p>
+<h2 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h2><p><img src="https://i.loli.net/2020/04/07/JKv3wlpc5zeCWPY.png" alt="三次握手"></p>
+<p>客户端：服务器你好，我需要建立连接（第一次握手请求）</p>
+<p>服务端：收到（第一次握手响应），正在准备，请确认连接（第二次握手请求）</p>
+<p>客户端：收到（第二次握手响应），确认连接（第三次握手请求，服务端收到响应）</p>
+<h2 id="四次挥手"><a href="#四次挥手" class="headerlink" title="四次挥手"></a>四次挥手</h2><p><img src="https://i.loli.net/2020/04/07/m4O7U3CZnQpIksM.png" alt="四次挥手"></p>
+<p>客户端：服务器你好，我需要断开连接（第一次挥手请求）</p>
+<p>服务端：收到（第一次挥手响应），正在准备（第二次挥手请求，客户端收到响应）</p>
+<p>服务端：已准备好断开连接，请确认断开（第三次挥手请求）</p>
+<p>客户端：收到（第三次挥手响应），确认断开（第四次挥手请求，服务端收到响应）</p>
+</body></html>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2020/04/24/%E8%B7%A8%E5%9F%9F%E4%BA%A7%E7%94%9F%E5%8E%9F%E5%9B%A0%E5%92%8C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/">跨域产生原因和解决方法</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2020/04/20/WSL%E9%85%8D%E7%BD%AE%E6%8C%87%E5%8D%97/">WSL配置指南</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2021 Defpis&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                    
+                    
+                    <a class="column is-narrow has-text-black" title="GitHub"
+                        href="https://github.com/defpis">
+                        
+                        GitHub
+                        
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/" target="_blank" rel="noopener">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="站内搜索" />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>
